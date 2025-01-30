@@ -47,15 +47,15 @@ install_with_yay() {
 
     # Vérifier si le paquet est déjà installé
     if yay -Qi $package 2>&1; then
-        echo "Le paquets $package est déjà installé" | tee -a "$LOG_FILES_INSTALL"
+        echo "Le paquets $package est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
         return 0
     else
 
-        echo "Installation du paquets $package" | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation du paquets $package..." | tee -a "$LOG_FILES_INSTALL"
         if yay -S --needed --noconfirm --ask=4 $package 2>&1; then
-            echo "Installation réussie : $package" | tee -a "$LOG_FILES_INSTALL"
+            echo "Installation réussie pour $package..." | tee -a "$LOG_FILES_INSTALL"
         else
-            echo "Erreur d'installation : $package" | tee -a "$LOG_FILES_INSTALL"
+            echo "Erreur d'installation pour $package..." | tee -a "$LOG_FILES_INSTALL"
             return 1
         fi
     fi
@@ -68,15 +68,15 @@ install_with_pac() {
 
     # Vérifier si le paquet est déjà installé
     if pacman -Qi $package 2>&1; then
-        echo "Le paquets $package est déjà installé" | tee -a "$LOG_FILES_INSTALL"
+        echo "Le paquets $package est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
         return 0
     else
 
-        echo "Installation du paquets $package" | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation du paquets $package..." | tee -a "$LOG_FILES_INSTALL"
         if sudo pacman -S --needed --noconfirm $package 2>&1; then
-            echo "Installation réussie : $package" | tee -a "$LOG_FILES_INSTALL"
+            echo "Installation réussie pour $package..." | tee -a "$LOG_FILES_INSTALL"
         else
-            echo "Erreur d'installation : $package" | tee -a "$LOG_FILES_INSTALL"
+            echo "Erreur d'installation pour $package..." | tee -a "$LOG_FILES_INSTALL"
             return 1
         fi
     fi
@@ -96,15 +96,14 @@ configure_modprobe_file() {
 
     # Vérifier si le fichier existe déjà
     if [[ -f "/etc/modprobe.d/${file_name}" ]]; then
-        echo "Le fichier /etc/modprobe.d/${file_name} existe déjà. Aucune modification nécessaire." | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"  
+        echo "Le fichier /etc/modprobe.d/${file_name} existe déjà..." | tee -a "$LOG_FILES_INSTALL"
     else
         # Création du fichier et ajout des options
-        echo "Création du fichier /etc/modprobe.d/$file_name avec les options suivantes :" | tee -a "$LOG_FILES_INSTALL"
+        echo "Création du fichier /etc/modprobe.d/$file_name..." | tee -a "$LOG_FILES_INSTALL"
         for option in "${options[@]}"; do
             echo "$option" | sudo tee -a "/etc/modprobe.d/$file_name"
         done
-        echo "Fichier $file_name configuré avec succès." | tee -a "$LOG_FILES_INSTALL"
+        echo "Fichier $file_name configuré avec succès..." | tee -a "$LOG_FILES_INSTALL"
     fi
 }
 

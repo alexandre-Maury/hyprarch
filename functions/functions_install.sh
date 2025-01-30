@@ -13,30 +13,38 @@ config_system() {
 
     clear && echo
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DÉBUT DE LA CONFIGURATION DU SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
     if [[ "$git" =~ ^[yY]$ ]]; then
 
-      read -p " [git] Entrez votre nom d'utilisateur : " git_name
-      read -p " [git] Entrez votre adresse email : " git_email	
+        echo "Configuration des identifiants github..." | tee -a "$LOG_FILES_INSTALL"
 
-      git config --global user.name "${git_name}"
-      git config --global user.email "${git_email}"
+        read -p " [git] Entrez votre nom d'utilisateur : " git_name
+        read -p " [git] Entrez votre adresse email : " git_email	
+
+        git config --global user.name "${git_name}"
+        git config --global user.email "${git_email}"
       
     fi
 
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== DÉBUT DE LA CONFIGURATION DU FUSEAU HORAIRE ===" | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "Activation de la synchronisation de l'heure via NTP..." | tee -a "$LOG_FILES_INSTALL"
     sudo timedatectl set-ntp true
-    echo "Configuration du fuseau horaire : ${REGION}/${CITY}" | tee -a "$LOG_FILES_INSTALL"
+
+    echo "Configuration du fuseau horaire : ${REGION}/${CITY}..." | tee -a "$LOG_FILES_INSTALL"
     sudo timedatectl set-timezone ${REGION}/${CITY}
-    echo "Configuration de la locale : LANG=${LANG}, LC_TIME=${LANG}" | tee -a "$LOG_FILES_INSTALL"
+
+    echo "Configuration des locales : LANG=${LANG}, LC_TIME=${LANG}..." | tee -a "$LOG_FILES_INSTALL"
     sudo localectl set-locale LANG="${LANG}" LC_TIME="${LANG}"
+
     echo "Synchronisation de l'horloge matérielle avec l'heure UTC..." | tee -a "$LOG_FILES_INSTALL"
     sudo hwclock --systohc --utc
+
     echo "Vérification de l'état du service de gestion du temps..." | tee -a "$LOG_FILES_INSTALL"
     timedatectl status | tee -a "$LOG_FILES_INSTALL"
-    echo "=== FIN DE LA CONFIGURATION DU FUSEAU HORAIRE ===" | tee -a "$LOG_FILES_INSTALL"
+
+    echo "=== FIN DE LA CONFIGURATION DU SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 }
 
@@ -46,25 +54,25 @@ config_system() {
 install_yay() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== DÉBUT DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     # Vérifier si le paquet est déjà installé
     if pacman -Qi yay 2>&1; then
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Le paquets yay est déjà installé" | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "Le paquets yay est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
     else
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Installation du paquets yay" | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation du paquets yay..." | tee -a "$LOG_FILES_INSTALL"
         git clone https://aur.archlinux.org/yay-bin.git $HOME/.config/build/tmp/yay-bin
         cd $HOME/.config/build/tmp/yay-bin || exit
         makepkg -si --noconfirm && cd .. 
-        echo "Installation du paquets yay terminé" | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation du paquets yay terminé..." | tee -a "$LOG_FILES_INSTALL"
     fi
 
     yay -Syu --devel --noconfirm
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 }
 
 ##############################################################################
@@ -75,26 +83,31 @@ install_paru() {
     if [[ "$PARU" == "On" ]]; then
 
         echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "=== DÉBUT DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+        echo "=== RECHERCHE DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
         echo "" | tee -a "$LOG_FILES_INSTALL"
 
 
         # Vérifier si le paquet est déjà installé
         if pacman -Qi paru 2>&1; then
-            echo "" | tee -a "$LOG_FILES_INSTALL"
-            echo "Le paquets paru est déjà installé" | tee -a "$LOG_FILES_INSTALL"
-            echo "" | tee -a "$LOG_FILES_INSTALL"
+            echo "Le paquets paru est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
         else
-            echo "" | tee -a "$LOG_FILES_INSTALL"
-            echo "Installation du paquets paru" | tee -a "$LOG_FILES_INSTALL"
+            echo "Installation du paquets paru..." | tee -a "$LOG_FILES_INSTALL"
             git clone https://aur.archlinux.org/paru.git $HOME/.config/build/tmp/paru
             cd $HOME/.config/build/tmp/paru || exit
             makepkg -si --noconfirm && cd .. 
-            echo "Installation du paquets paru terminé" | tee -a "$LOG_FILES_INSTALL"
-            echo "" | tee -a "$LOG_FILES_INSTALL"
+            echo "Installation du paquets paru terminé..." | tee -a "$LOG_FILES_INSTALL"
         fi
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+
     else
-        echo "Le paquets paru n'est pas sélectionner dans le fichier config.sh"
+        echo "Le paquets paru n'est pas sélectionner dans le fichier config.sh..."
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+        echo "" | tee -a "$LOG_FILES_INSTALL"
     fi
 
 }
@@ -109,58 +122,128 @@ install_paquages() {
     local packages_hypr="$SCRIPT_DIR/pkg-files/packages_hypr.txt"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== DÉBUT DE L'INSTALLATION DES APPLICATIONS   ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     # Installation des dépendances
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "Installation des dépendances..." | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     while IFS= read -r line; do
         [[ -z "$line" || "$line" =~ ^# ]] && continue
         install_with_yay "$line"
     done < "$deps"
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
     # Installation des packages principaux
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "Installation des packages principaux..." | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     while IFS= read -r line; do
         [[ -z "$line" || "$line" =~ ^# ]] && continue
         install_with_yay "$line"
     done < "$packages"
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
     # Installation des packages principaux hypr
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "Installation des packages hypr principaux..." | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     while IFS= read -r line; do
         [[ -z "$line" || "$line" =~ ^# ]] && continue
         install_with_yay "$line"
     done < "$packages_hypr"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "Installation terminée." | tee -a "$LOG_FILES_INSTALL"
-
+    echo "=== FIN DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "Installation de auto-cpufreq..." | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-
-    git clone https://github.com/AdnanHodzic/auto-cpufreq.git $HOME/.config/build/tmp/auto-cpufreq
-    cd $HOME/.config/build/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
-    sudo auto-cpufreq --install
-
-    ## Activation des services  
-    sudo systemctl enable sddm
-    sudo systemctl enable NetworkManager.service
-    sudo systemctl enable bluetooth.service
-    sudo systemctl enable mpd.service 
-
-    systemctl --user enable pipewire 
-    systemctl --user enable pipewire-pulse
-    systemctl --user enable wireplumber
 
 }
+
+install_repo() {
+
+    # Définir les variables
+    OHMYZSH_REPO="https://github.com/robbyrussell/oh-my-zsh.git"
+    FZF_REPO="https://github.com/junegunn/fzf.git"
+    POWERLEVEL10K_REPO="https://github.com/romkatv/powerlevel10k.git"
+    AUTO_CPUFREQ="https://github.com/AdnanHodzic/auto-cpufreq.git"
+
+    OHMYZSH_PLUGINS_REPO=(
+        "zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git"
+        "zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions.git"
+        "fast-syntax-highlighting https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
+        "zsh-autocomplete https://github.com/marlonrichert/zsh-autocomplete.git"
+    )
+
+    ohmyzsh_plugins_remove=(
+        "rtx"
+        "ssh-agent"
+    )
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DES REPOS === " | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    ### REPO AUTOCPU-FREQ
+    echo "Recherche de l'installation de auto-cpufreq..." | tee -a "$LOG_FILES_INSTALL"
+    if ! command -v auto-cpufreq &> /dev/null
+    then
+
+        echo "Auto-cpufreq n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
+        git clone "$AUTO_CPUFREQ" $HOME/.config/build/tmp/auto-cpufreq
+        cd $HOME/.config/build/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
+        sudo auto-cpufreq --install
+        echo "Installation de auto-cpufreq terminée..." | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Auto-cpufreq est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
+    fi
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    ### REPO OH-MY-ZSH
+    echo "Recherche de l'installation de oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
+    if [ ! -d "$HOME/.oh-my-zsh" ]; then
+
+        echo "Oh-my-zsh n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
+        chsh -s $(which zsh)
+        git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
+        git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+        sed -i 's/^ZSH_THEME=.*$/ZSH_THEME="powerlevel10k/powerlevel10k"/' "$HOME/.zshrc"
+        git clone --depth 1 "$FZF_REPO" "$HOME/.fzf"
+        "$HOME/.fzf/install" --all
+
+        for plugin in "${OHMYZSH_PLUGINS_REPO[@]}"; do
+            plugin_name=$(echo $plugin | awk '{print $1}')
+            plugin_repo=$(echo $plugin | awk '{print $2}')
+            
+            plugin_dir="$HOME/.oh-my-zsh/custom/plugins/$plugin_name"
+            git clone "$plugin_repo" "$plugin_dir"
+        done
+
+        plugin_list=()
+        for plugin in "${OHMYZSH_PLUGINS_REPO[@]}"; do
+            plugin_name=$(echo $plugin | awk '{print $1}')
+            plugin_list+=("$plugin_name")
+        done
+        plugin_string=$(printf "%s " "${plugin_list[@]}")
+        sed -i "s/^plugins=(.*)/plugins=($plugin_string)/" "$HOME/.zshrc"
+
+        for plugin in "${ohmyzsh_plugins_remove[@]}"; do
+            zsh -c "source $HOME/.zshrc && omz plugin disable $plugin || true"
+        done
+        echo "Installation de oh-my-zsh terminée..." | tee -a "$LOG_FILES_INSTALL"
+
+    else
+        echo "Oh-my-zsh est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
+    fi
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    ### AUTRES INSTALLATION ICI
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DES REPOS === " | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+}
+
+
 
 ##############################################################################
 ## Installation des drivers                                                 
@@ -177,23 +260,17 @@ install_drivers() {
     sudo mkdir -p "/etc/modprobe.d"
     sudo mkdir -p "/etc/pacman.d/hooks"
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DES DRIVERS === " | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "Recherche du paquet pour la configuration du microcode..." | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-    
-    
     if [[ -n "$PROC_UCODE_TYPE" ]]; then
-        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "Recherche du paquet $PROC_UCODE_TYPE pour la configuration du microcode..." | tee -a "$LOG_FILES_INSTALL"
         install_with_pac "$PROC_UCODE_TYPE"
     else
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Erreur : PROC_UCODE_TYPE est vide. Rien à installer." | tee -a "$LOG_FILES_INSTALL"
+        echo "Microcode manquant, installation impossible..." | tee -a "$LOG_FILES_INSTALL"
     fi
 
-
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "Recherche des paquets pour la configuration de la carte graphique..." | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     # Configuration pour Intel
@@ -202,14 +279,16 @@ install_drivers() {
         has_multiple_gpus=true
         gpu_modules="${gpu_modules:+$gpu_modules }i915"
 
+        echo "Recherche des paquets Intel pour la configuration de la carte graphique..." | tee -a "$LOG_FILES_INSTALL"
+
         while IFS= read -r line; do
             [[ -z "$line" || "$line" =~ ^# ]] && continue
             install_with_pac "$line"
         done < "$intel_driver"
 
         echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Recherche du fichier de configuration modprobe pour Intel..." | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
+
+        echo "Recherche des fichiers de configuration pour Intel..." | tee -a "$LOG_FILES_INSTALL"
             
         # Gestion de la configuration de i915.conf
         configure_modprobe_file "i915.conf" \
@@ -224,8 +303,10 @@ install_drivers() {
             echo "Ajout de 'kms' dans HOOKS de /etc/mkinitcpio.conf..." | tee -a "$LOG_FILES_INSTALL"
             sudo sed -i '/^[^#]*HOOKS=/s/^HOOKS=(\(.*\))/HOOKS=(\1 kms)/' "/etc/mkinitcpio.conf"
         else
-            echo "/etc/mkinitcpio.conf : 'kms' est déjà présent dans HOOKS. Aucune modification nécessaire." | tee -a "$LOG_FILES_INSTALL"
+            echo " 'kms' est déjà présent dans le HOOKS du fichier /etc/mkinitcpio.conf..." | tee -a "$LOG_FILES_INSTALL"
         fi
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
 
     fi
 
@@ -235,10 +316,7 @@ install_drivers() {
         has_multiple_gpus=true
         gpu_modules="${gpu_modules:+$gpu_modules }amdgpu radeon"
 
-        # git clone --recursive  https://aur.archlinux.org/amdgpu-pro-installer.git $HOME/.config/build/tmp/amdgpu-installer
-        # cd $HOME/.config/build/tmp/amdgpu-installer
-        # makepkg -si --noconfirm --needed  
-        # cd ..
+        echo "Recherche des paquets Amd pour la configuration de la carte graphique..." | tee -a "$LOG_FILES_INSTALL"
 
         while IFS= read -r line; do
             [[ -z "$line" || "$line" =~ ^# ]] && continue
@@ -246,8 +324,8 @@ install_drivers() {
         done < "$amd_driver"
 
         echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Recherche du fichier de configuration modprobe pour AMD..." | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
+
+        echo "Recherche des fichiers de configuration pour Amd..." | tee -a "$LOG_FILES_INSTALL"
 
         # Gestion de la configuration de amdgpu.conf
         configure_modprobe_file "amdgpu.conf" \
@@ -264,8 +342,10 @@ install_drivers() {
             echo "Ajout de 'kms' dans HOOKS de /etc/mkinitcpio.conf..." | tee -a "$LOG_FILES_INSTALL"
             sudo sed -i '/^[^#]*HOOKS=/s/^HOOKS=(\(.*\))/HOOKS=(\1 kms)/' "/etc/mkinitcpio.conf"
         else
-            echo "'kms' est déjà présent dans HOOKS non commenté de /etc/mkinitcpio.conf." | tee -a "$LOG_FILES_INSTALL"
+            echo " 'kms' est déjà présent dans le HOOKS du fichier /etc/mkinitcpio.conf..." | tee -a "$LOG_FILES_INSTALL"
         fi
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
     fi
 
     # Configuration pour NVIDIA
@@ -273,6 +353,8 @@ install_drivers() {
 
         has_multiple_gpus=true
         gpu_modules="${gpu_modules:+$gpu_modules }nvidia nvidia_modeset nvidia_uvm nvidia_drm"
+
+        echo "Recherche des paquets Nvidia pour la configuration de la carte graphique..." | tee -a "$LOG_FILES_INSTALL"
             
         while IFS= read -r line; do
             [[ -z "$line" || "$line" =~ ^# ]] && continue
@@ -280,13 +362,14 @@ install_drivers() {
         done < "$nvidia_driver"
 
         echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Recherche du hook pour nvidia..." | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
+
+        echo "Recherche des fichiers de configuration pour Nvidia..." | tee -a "$LOG_FILES_INSTALL"
 
         if [[ -f "/etc/pacman.d/hooks/nvidia.hook" ]]; then
-            echo "Hook nvidia déja créer : /etc/pacman.d/hooks/nvidia.hook..." | tee -a "$LOG_FILES_INSTALL"
-            echo "" | tee -a "$LOG_FILES_INSTALL"
+            echo "Le Hook nvidia est déja créer dans /etc/pacman.d/hooks/nvidia.hook..." | tee -a "$LOG_FILES_INSTALL"
         else
+
+            echo "Création du Hook nvidia dans /etc/pacman.d/hooks/nvidia.hook..." | tee -a "$LOG_FILES_INSTALL"
 
             # Création du hook pacman
             {
@@ -311,13 +394,8 @@ install_drivers() {
 
             } | sudo tee /etc/pacman.d/hooks/nvidia.hook
 
-            echo "Hook créer avec succés : /etc/pacman.d/hooks/nvidia.hook..." | tee -a "$LOG_FILES_INSTALL"
-            echo "" | tee -a "$LOG_FILES_INSTALL"
+            echo "Hook créer avec succés dans /etc/pacman.d/hooks/nvidia.hook..." | tee -a "$LOG_FILES_INSTALL"
         fi
-
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "Recherche du fichier de configuration modprobe pour NVIDIA..." | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
 
         # Gestion de la configuration de nvidia.conf
         configure_modprobe_file "nvidia.conf" \
@@ -328,19 +406,21 @@ install_drivers() {
             "options nouveau modeset=0" \
             "blacklist nouveau" 
 
+        echo "Suppression de 'kms' dans HOOKS de /etc/mkinitcpio.conf..." | tee -a "$LOG_FILES_INSTALL"
         # sudo sed -i 's/ kms / /g' "/etc/mkinitcpio.conf"
         sudo sed -i '/^HOOKS/ s/ kms / /' "/etc/mkinitcpio.conf"
 
         sudo systemctl enable nvidia-suspend.service 
         sudo systemctl enable nvidia-hibernate.service 
         sudo systemctl enable nvidia-resume.service
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
     fi
 
 
 
     # Si aucun GPU spécifique n'est détecté
     if [ -z "$gpu_modules" ]; then
-        echo "" | tee -a "$LOG_FILES_INSTALL"
         echo "GPU non reconnu, installation des drivers impossible." | tee -a "$LOG_FILES_INSTALL"
         echo "" | tee -a "$LOG_FILES_INSTALL"
     fi
@@ -348,12 +428,13 @@ install_drivers() {
     # Configuration pour systèmes multi-GPU
     if $has_multiple_gpus; then
 
+        echo "Recherche de la configuration multi-gpu" | tee -a "$LOG_FILES_INSTALL"
+
         if [[ -f "/etc/modprobe.d/gpu-multi.conf" ]]; then
-
-            echo "multi-gpu déja créer : /etc/modprobe.d/gpu-multi.conf..." | tee -a "$LOG_FILES_INSTALL"
-            echo "" | tee -a "$LOG_FILES_INSTALL"
-
+            echo "Configuration multi-gpu déja créer dans /etc/modprobe.d/gpu-multi.conf..." | tee -a "$LOG_FILES_INSTALL"
         else
+
+            echo "Création de la configuration multi-gpu dans /etc/modprobe.d/gpu-multi.conf..." | tee -a "$LOG_FILES_INSTALL"
 
             # Crée ou modifie le fichier gpu-multi.conf
             {
@@ -372,7 +453,11 @@ install_drivers() {
             } | sudo tee /etc/modprobe.d/gpu-multi.conf
 
         fi
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
     fi
+
+    echo "Mise à jour du fichier mkinitcpio.conf..." | tee -a "$LOG_FILES_INSTALL"
 
     # Mise à jour de mkinitcpio.conf
     sudo sed -i "s/^#\?MODULES=.*/MODULES=($gpu_modules)/" "/etc/mkinitcpio.conf"
@@ -386,11 +471,11 @@ install_drivers() {
         sudo sed -i "s|^FILES=.*|FILES=(/etc/modprobe.d/*.conf /boot/$PROC_UCODE)|" "/etc/mkinitcpio.conf"
     fi
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
     # sudo mkinitcpio --config /etc/mkinitcpio.conf --generate /boot/initramfs-custom.img;
 
-    echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "Régénération des initramfs pour tous les kernels installés..." | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
 
     kernels=("/boot/vmlinuz-"*) 
 
@@ -418,6 +503,10 @@ install_drivers() {
         echo "Aucun fichier vmlinuz-* trouvé dans /boot" | tee -a "$LOG_FILES_INSTALL"
     fi
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DES DRIVERS === " | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
 }
 
 ##############################################################################
@@ -426,7 +515,7 @@ install_drivers() {
 install_fonts() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "Installation des fonts ..." | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DES FONTS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     for url in "${URL_FONTS[@]}"; do
@@ -434,13 +523,18 @@ install_fonts() {
         file_name=$(basename "$url")
 
         if [[ -f "$HOME/.local/share/fonts/$file_name" ]]; then
-            echo "La fonts $file_name est déjà installée, passage au suivant." | tee -a "$LOG_FILES_INSTALL"
+            echo "La fonts $file_name est déjà installée, passage au suivant..." | tee -a "$LOG_FILES_INSTALL"
             continue
         fi
 
-        echo "Installation de la fonts : $file_name." | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation de la fonts : $file_name..." | tee -a "$LOG_FILES_INSTALL"
         curl -LsS "$url" -o "$HOME/.local/share/fonts/$file_name"
     done    
+
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DES FONTS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 }
 
 
@@ -527,52 +621,57 @@ save_conf() {
 ##############################################################################
 install_conf() {
 
-        echo "Configuration du systemes" && echo ""
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DE HYPRDOTS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 
-        git clone --recursive https://github.com/alexandre-Maury/hyprdots.git /opt/build/hyprdots
-        cd /opt/build/hyprdots
+    git clone --recursive https://github.com/alexandre-Maury/hyprdots.git /opt/build/hyprdots
+    cd /opt/build/hyprdots
 
+    rsync -av --delete config/hypr/ $HOME/.config/hypr
+    rsync -av --delete config/kitty/ $HOME/.config/kitty
+    rsync -av --delete config/rofi/ $HOME/.config/rofi
+    rsync -av --delete config/waybar/ $HOME/.config/waybar
+    rsync -av --delete config/qt5ct/ $HOME/.config/qt5ct
+    rsync -av --delete config/qt6ct/ $HOME/.config/qt6ct
+    rsync -av --delete config/nvim/ $HOME/.config/nvim
+    rsync -av --delete config/dunst/ $HOME/.config/dunst
+    rsync -av --delete config/gtk-3.0/ $HOME/.config/gtk-3.0
+    rsync -av --delete config/settings.ini $HOME/.config/settings.ini
 
-        rsync -av --delete config/hypr/ $HOME/.config/hypr
-        rsync -av --delete config/kitty/ $HOME/.config/kitty
-        rsync -av --delete config/rofi/ $HOME/.config/rofi
-        rsync -av --delete config/waybar/ $HOME/.config/waybar
-        rsync -av --delete config/qt5ct/ $HOME/.config/qt5ct
-        rsync -av --delete config/qt6ct/ $HOME/.config/qt6ct
-        rsync -av --delete config/nvim/ $HOME/.config/nvim
-        rsync -av --delete config/dunst/ $HOME/.config/dunst
-        rsync -av --delete config/gtk-3.0/ $HOME/.config/gtk-3.0
-        rsync -av --delete config/settings.ini $HOME/.config/settings.ini
+    rsync -av --delete home/scripts/ $HOME/scripts
+    rsync -av --delete home/.vimrc/ $HOME/.vimrc
 
-        rsync -av --delete home/scripts/ $HOME/scripts
-        rsync -av --delete home/.vimrc/ $HOME/.vimrc
+    unzip themes/decay-green.zip -d $HOME/.local/share/themes
+    unzip themes/mocha.zip -d $HOME/.local/share/themes
+    unzip themes/rose-pine.zip -d $HOME/.local/share/themes
 
-        unzip themes/decay-green.zip -d $HOME/.local/share/themes
-        unzip themes/mocha.zip -d $HOME/.local/share/themes
-        unzip themes/rose-pine.zip -d $HOME/.local/share/themes
+    unzip icons/catppuccin-macchiato-lavender-cursors.zip -d $HOME/.local/share/icons
+    unzip icons/catppuccin-mocha-lavender-cursors.zip -d $HOME/.local/share/icons
+    unzip icons/rose-pine-cursor.zip -d $HOME/.local/share/icons
+    unzip icons/icon-tela-purple.zip -d $HOME/.local/share/icons
+    unzip icons/rose-pine-icon.zip -d $HOME/.local/share/icons
 
-        unzip icons/catppuccin-macchiato-lavender-cursors.zip -d $HOME/.local/share/icons
-        unzip icons/catppuccin-mocha-lavender-cursors.zip -d $HOME/.local/share/icons
-        unzip icons/rose-pine-cursor.zip -d $HOME/.local/share/icons
-        unzip icons/icon-tela-purple.zip -d $HOME/.local/share/icons
-        unzip icons/rose-pine-icon.zip -d $HOME/.local/share/icons
+    sudo rsync -av etc/sddm/rose-pine-sddm /usr/share/sddm/themes
+    sudo rsync -av etc/sddm/catppuccin-macchiato /usr/share/sddm/themes
+    sudo rsync -av etc/sddm/catppuccin-mocha /usr/share/sddm/themes
 
-        sudo rsync -av etc/sddm/rose-pine-sddm /usr/share/sddm/themes
-        sudo rsync -av etc/sddm/catppuccin-macchiato /usr/share/sddm/themes
-        sudo rsync -av etc/sddm/catppuccin-mocha /usr/share/sddm/themes
+    sudo mkdir -p /etc/sddm.conf.d
 
-        sudo mkdir -p /etc/sddm.conf.d
+    sudo rsync -av --delete etc/sddm/sddm.conf /etc/sddm.conf.d/sddm.conf
+    sudo rsync -av --delete etc/sddm/Xsetup /usr/share/sddm/scripts/Xsetup
 
-        sudo rsync -av --delete etc/sddm/sddm.conf /etc/sddm.conf.d/sddm.conf
-        sudo rsync -av --delete etc/sddm/Xsetup /usr/share/sddm/scripts/Xsetup
+    chmod +x $HOME/.config/waybar/scripts/*
+    chmod +x $HOME/.config/hypr/scripts/*
+    chmod +x $HOME/scripts/*
+    sudo chmod +x /usr/share/sddm/scripts/Xsetup
 
-        chmod +x $HOME/.config/waybar/scripts/*
-        chmod +x $HOME/.config/hypr/scripts/*
-        chmod +x $HOME/scripts/*
-        sudo chmod +x /usr/share/sddm/scripts/Xsetup
+    kitty +kitten themes --reload-in=all $KITTY
+    vim +PluginInstall +qall
 
-        kitty +kitten themes --reload-in=all $KITTY
-        vim +PluginInstall +qall
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DE HYPRDOTS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 
 }
 
@@ -630,6 +729,26 @@ install_cron() {
     # Confirmation
     echo "Le service et le timer ont été configurés avec succès."
     echo "Vérifiez le statut avec : systemctl --user status $timer_name"
+}
+
+Activate_services() {
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    sudo systemctl enable sddm
+    sudo systemctl enable NetworkManager.service
+    sudo systemctl enable bluetooth.service
+    sudo systemctl enable mpd.service 
+
+    systemctl --user enable pipewire 
+    systemctl --user enable pipewire-pulse
+    systemctl --user enable wireplumber
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 }
 
 ##############################################################################

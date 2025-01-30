@@ -31,8 +31,10 @@ sudo chown -R $USER:$USER "/opt/build"
 # Change de répertoire pour éviter les problèmes liés au déplacement
 cd "$TARGET_DIR"
 
-# Lancer le script install.sh
-echo "Lancement de l'installation depuis $TARGET_DIR..."
 chmod +x ./install.sh && ./install.sh --install
 
-echo "Installation terminée."
+clear
+
+echo "" | tee -a "$LOG_FILES_INSTALL"
+echo "=== FIN DE L'INSTALLATION REDEMMARER VOTRE SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"
+echo "" | tee -a "$LOG_FILES_INSTALL"

@@ -72,12 +72,12 @@ case "$1" in
     install_yay
     install_paru
     install_paquages
+    install_repo
     install_drivers
     install_fonts
     install_conf
     # install_cron
-    clear && echo
-    echo "Configuration terminée, redémarrez votre système." 
+    Activate_services
     ;;
 
   --save)
