@@ -529,7 +529,6 @@ install_conf() {
 
         echo "Configuration du systemes" && echo ""
 
-        # git clone --recursive https://github.com/alexandre-Maury/hyprdots.git $HOME/build/hyprdots
         git clone --recursive https://github.com/alexandre-Maury/hyprdots.git /opt/build/hyprdots
         cd /opt/build/hyprdots
 
