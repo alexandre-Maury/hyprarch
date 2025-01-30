@@ -198,7 +198,7 @@ install_repo() {
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
 
         echo "Oh-my-zsh n'est pas installé, installation en cours..." 
-        sudo chsh --shell /bin/zsh
+        chsh --shell /bin/zsh
         git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
         git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
 
