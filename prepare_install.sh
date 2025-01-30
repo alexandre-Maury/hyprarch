@@ -36,3 +36,9 @@ chmod +x ./install.sh && ./install.sh --install
 clear
 
 echo "=== FIN DE L'INSTALLATION REDEMMARER VOTRE SYSTEME ===" 
+echo
+echo " === Configuration Post Installation ==="
+echo
+echo "[vim] Pluggins YouCompleteMe : Instructions d'installation :"
+echo " cd ~/.vim/plugged/YouCompleteMe && python3 install.py --clangd-completer"
+echo
