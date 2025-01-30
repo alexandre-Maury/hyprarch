@@ -35,6 +35,4 @@ chmod +x ./install.sh && ./install.sh --install
 
 clear
 
-echo "" | tee -a "$LOG_FILES_INSTALL"
-echo "=== FIN DE L'INSTALLATION REDEMMARER VOTRE SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"
-echo "" | tee -a "$LOG_FILES_INSTALL"
+echo "=== FIN DE L'INSTALLATION REDEMMARER VOTRE SYSTEME ===" 
