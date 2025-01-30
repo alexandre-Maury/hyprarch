@@ -1,7 +1,7 @@
 set -e  # Quitte immédiatement en cas d'erreur.
 
 # Variables
-TARGET_DIR="/opt/build/arch-hyprland"
+TARGET_DIR="/opt/build/hyprarch"
 CURRENT_DIR=$(pwd)
 
 # Vérification si le script est exécuté en tant que root
