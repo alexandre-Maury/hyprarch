@@ -5,7 +5,7 @@
 # https://hyprpanel.com/getting_started/hyprpanel.html
 
 ##############################################################################
-## arch-chroot Définir le fuseau horaire + local                                                  
+## config_system - Configuration du systeme                                                 
 ##############################################################################
 config_system() {
 
@@ -49,7 +49,7 @@ config_system() {
 }
 
 ##############################################################################
-## Installation de YAY                                               
+## install_yay - Installation de YAY                                               
 ##############################################################################
 install_yay() {
 
@@ -76,7 +76,7 @@ install_yay() {
 }
 
 ##############################################################################
-## Installation de PARU                                                 
+## install_paru - Installation de PARU                                                 
 ##############################################################################
 install_paru() {
 
@@ -113,7 +113,7 @@ install_paru() {
 }
 
 ##############################################################################
-## Installation des utilitaires                                
+## install_paquages - Installation des utilitaires                                
 ##############################################################################
 install_paquages() {
 
@@ -156,6 +156,9 @@ install_paquages() {
 
 }
 
+##############################################################################
+## install_repo - Installation des utilitaires                                
+##############################################################################
 install_repo() {
 
     # Définir les variables
@@ -195,7 +198,7 @@ install_repo() {
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
 
         echo "Oh-my-zsh n'est pas installé, installation en cours..." 
-        sudo chsh -s $(which zsh)
+        sudo chsh --shell /bin/zsh
         git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
         git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
 
@@ -307,7 +310,7 @@ install_repo() {
 
 
 ##############################################################################
-## Installation des drivers                                                 
+## install_drivers - Installation des drivers                                                 
 ##############################################################################
 install_drivers() {
 
@@ -571,7 +574,7 @@ install_drivers() {
 }
 
 ##############################################################################
-## Installation des fonts                                
+## install_fonts - Installation des fonts                                
 ##############################################################################
 install_fonts() {
 
@@ -600,7 +603,7 @@ install_fonts() {
 
 
 ##############################################################################
-## Sauvegarde de l'ancienne configuration                                               
+## save_conf - Sauvegarde de l'ancienne configuration                                               
 ##############################################################################
 save_conf() {
 
@@ -678,7 +681,7 @@ save_conf() {
 }
 
 ##############################################################################
-## Configuration du systeme avec dotfiles                                               
+## install_conf - Configuration du systeme avec dotfiles                                               
 ##############################################################################
 install_conf() {
 
@@ -735,6 +738,9 @@ install_conf() {
 
 }
 
+##############################################################################
+## install_cron - a tester                                              
+##############################################################################
 install_cron() {
     # Variables
     service_name="sync_hypr.service"
@@ -791,6 +797,9 @@ install_cron() {
     echo "Vérifiez le statut avec : systemctl --user status $timer_name"
 }
 
+##############################################################################
+## Activate_services - Activation des services                                              
+##############################################################################
 Activate_services() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
