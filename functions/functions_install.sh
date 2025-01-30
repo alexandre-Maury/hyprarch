@@ -198,6 +198,75 @@ install_repo() {
         sudo chsh -s $(which zsh)
         git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
         git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
+
+        echo "Création du fichier .zshrc à l'emplacement : $HOME/.zshrc" | tee -a "$LOG_FILES_INSTALL"
+
+        {
+            echo "# Chemin vers votre installation Oh My Zsh."
+            echo "export ZSH=\"\$HOME/.oh-my-zsh\""
+
+            echo "# Définir le nom du thème à charger" 
+            echo "ZSH_THEME=\"robbyrussell\""
+
+            echo "# Décommentez la ligne suivante si le collage d'URL et d'autres textes est mal formaté."
+            echo "DISABLE_MAGIC_FUNCTIONS=\"true\""
+
+            echo "# Les plugins standard peuvent être trouvés dans \$ZSH/plugins/"
+            echo "plugins=(git)"
+
+            echo "source \$ZSH/oh-my-zsh.sh"
+
+            echo "# Configuration utilisateur"
+
+            echo "# Activer le support des couleurs pour la commande ls et ajouter également des alias pratiques"
+            echo "if [ -x /usr/bin/dircolors ]; then"
+            echo "    # Si le fichier ~/.dircolors existe et est lisible, appliquer les paramètres de couleurs depuis ce fichier,"
+            echo "    # sinon, utiliser les paramètres par défaut de dircolors."
+            echo "    test -r ~/.dircolors && eval \"\$(dircolors -b ~/.dircolors)\" || eval \"\$(dircolors -b)\""
+
+            echo "    # Définir un alias pour ls avec support des couleurs activé automatiquement"
+            echo "    alias ls='ls --color=auto'"
+
+            echo "    # Les lignes suivantes sont commentées mais peuvent être décommentées pour activer le support des couleurs pour les commandes suivantes :"
+            echo "    # Définir un alias pour dir avec support des couleurs activé automatiquement"
+            echo "    # alias dir='dir --color=auto'"
+
+            echo "    # Définir un alias pour vdir avec support des couleurs activé automatiquement"
+            echo "    # alias vdir='vdir --color=auto'"
+
+            echo "    # Définir des alias pour grep, fgrep et egrep avec support des couleurs activé automatiquement"
+            echo "    alias grep='grep --color=auto'"
+            echo "    alias fgrep='fgrep --color=auto'"
+            echo "    alias egrep='egrep --color=auto'"
+            echo "fi"
+
+            echo "# Alias supplémentaires"
+            echo "alias yt-dlp='pipx run yt-dlp'"
+            echo "alias yt-dl-likes='yt-dlp --cookies www.youtube.com_cookies.txt -x --audio-format mp3 :ytfav'"
+            echo "alias tmp='pushd \$(mktemp -d)'"
+            echo "alias tree='exa -Tll'"
+            echo "alias ls-detail='exa -ll --group-directories-first'"
+            echo "alias ls-detail-all='exa -lla --group-directories-first'"
+            echo "alias ls-all='ls -alF'"
+            echo "alias ls-hidden='ls -A'"
+            echo "alias ls-basic='ls -CF'"
+
+            echo "# export PATH=\"\$HOME/.local/bin:\$PATH\""
+            echo "# export PATH=\"\$PATH:~/.local/bin\""
+
+            echo "# Ajouter ssh-agent et réutiliser celui qui a été créé"
+            echo "if ! pgrep -u \$USER ssh-agent > /dev/null; then"
+            echo "    ssh-agent > \$XDG_RUNTIME_DIR/ssh-agent.env"
+            echo "fi"
+
+            echo "if [[ ! \"\$SSH_AUTH_SOCK\" ]]; then"
+            echo "    source \$XDG_RUNTIME_DIR/ssh-agent.env >/dev/null"
+            echo "fi"
+
+        } > "$HOME/.zshrc"
+
+        echo "Le fichier .zshrc a été créé avec succès à l'emplacement : $HOME/.zshrc" | tee -a "$LOG_FILES_INSTALL"
+
         sed -i 's#^ZSH_THEME=.*$#ZSH_THEME="powerlevel10k/powerlevel10k"#' "$HOME/.zshrc"
         git clone --depth 1 "$FZF_REPO" "$HOME/.fzf"
         "$HOME/.fzf/install" --all
