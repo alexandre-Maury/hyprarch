@@ -34,7 +34,7 @@ cd "$TARGET_DIR"
 chmod +x ./install.sh && ./install.sh --install
 
 clear
-
+echo
 echo "=== FIN DE L'INSTALLATION REDEMMARER VOTRE SYSTEME ===" 
 echo
 echo " === Configuration Post Installation ==="
