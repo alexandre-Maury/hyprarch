@@ -701,7 +701,7 @@ install_conf() {
     rsync -av --delete config/settings.ini $HOME/.config/settings.ini
 
     rsync -av --delete home/scripts/ $HOME/scripts
-    rsync -av --delete home/.vimrc/ $HOME/.vimrc
+    rsync -av --delete home/.vimrc $HOME/.vimrc
 
     unzip themes/decay-green.zip -d $HOME/.local/share/themes
     unzip themes/mocha.zip -d $HOME/.local/share/themes
