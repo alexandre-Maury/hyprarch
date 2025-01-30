@@ -67,7 +67,6 @@ rustup
 libappindicator-gtk3
 libindicator-gtk3
 visual-studio-code-bin
-authpass-bin
 cameractrls
 obsidian
 docker
