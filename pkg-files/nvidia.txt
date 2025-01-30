@@ -1,0 +1,7 @@
+nvidia-dkms
+nvidia-utils
+nvidia-prime
+nvidia-settings
+lib32-nvidia-utils
+egl-wayland
+libva-nvidia-driver

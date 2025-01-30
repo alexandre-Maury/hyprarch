@@ -1,0 +1,92 @@
+# 1. Ces paquets sont liés à l'interface graphique et à l'environnement de bureau :
+polkit-gnome
+waybar
+nemo
+rofi-wayland
+wofi
+wofi-emoji
+slurp
+grim
+swww
+feh
+gedit
+nwg-look
+sddm
+dunst
+udiskie
+arandr
+syshud
+# 2. Ces paquets concernent des outils d'administration système et de surveillance :
+ddcutil
+rsync
+less
+jq
+bc
+yad
+zip
+unzip
+p7zip
+unrar
+which
+btop
+htop
+indicator-sensors
+brightnessctl
+xorg-xrandr
+# 3. Ces paquets sont relatifs à la gestion du réseau, des connexions sans fil et des périphériques Bluetooth :
+wpa_supplicant
+iwd
+iw
+networkmanager
+network-manager-applet
+nm-connection-editor
+bluez
+bluez-utils
+blueman
+# 4. Ces paquets sont relatifs à la gestion de l'audio et du multimédia :
+sof-firmware
+pipewire
+pipewire-alsa
+pipewire-audio
+pipewire-pulse
+gst-plugin-pipewire
+pipewire-jack
+wireplumber
+pamixer
+pavucontrol
+playerctl
+mpd
+ncmpcpp
+vlc
+# 5. Ces paquets sont associés aux applications, environnements de développement et outils d'interface utilisateur :
+firefox
+thorium-browser-bin
+kitty
+rustup
+libappindicator-gtk3
+libindicator-gtk3
+visual-studio-code-bin
+authpass-bin
+cameractrls
+obsidian
+docker
+neovim
+vim
+# 6. Ces paquets sont relatifs aux thèmes, aux polices et à l'apparence des applications :
+ttf-jetbrains-mono-nerd
+noto-fonts
+ocean-sound-theme
+gtk-engine-murrine
+gtk2
+gtk3
+gtk4
+# 7. Ces paquets sont relatifs à la gestion du presse-papiers et autres outils pratiques :
+wl-clipboard
+macchina
+neofetch
+# 8. Ces paquets sont relatifs aux bibliothèques Qt :
+qt5-wayland
+qt6-wayland
+qt5ct
+qt6ct
+kvantum
