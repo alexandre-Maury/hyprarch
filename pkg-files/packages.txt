@@ -72,6 +72,7 @@ obsidian
 docker
 neovim
 vim
+jdownloader2
 # 6. Ces paquets sont relatifs aux thèmes, aux polices et à l'apparence des applications :
 ttf-jetbrains-mono-nerd
 noto-fonts
