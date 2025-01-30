@@ -11,11 +11,11 @@ config_system() {
 
     local git=$1
 
-    clear && echo
-
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== DÉBUT DE LA CONFIGURATION DU SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    clear && echo
 
     if [[ "$git" =~ ^[yY]$ ]]; then
 
