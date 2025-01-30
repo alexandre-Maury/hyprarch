@@ -176,35 +176,29 @@ install_repo() {
         "ssh-agent"
     )
 
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION DES REPOS === " | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-
     ### REPO AUTOCPU-FREQ
-    echo "Recherche de l'installation de auto-cpufreq..." | tee -a "$LOG_FILES_INSTALL"
+    echo "Recherche de l'installation de auto-cpufreq..." 
     if ! command -v auto-cpufreq &> /dev/null
     then
 
-        echo "Auto-cpufreq n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Auto-cpufreq n'est pas installé, installation en cours..." 
         git clone "$AUTO_CPUFREQ" $HOME/.config/build/tmp/auto-cpufreq
         cd $HOME/.config/build/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
         sudo auto-cpufreq --install
-        echo "Installation de auto-cpufreq terminée..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation de auto-cpufreq terminée..." 
     else
-        echo "Auto-cpufreq est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Auto-cpufreq est déjà installé sur le systeme..." 
     fi
 
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-
     ### REPO OH-MY-ZSH
-    echo "Recherche de l'installation de oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
+    echo "Recherche de l'installation de oh-my-zsh..." 
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
 
-        echo "Oh-my-zsh n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
-        chsh -s $(which zsh)
+        echo "Oh-my-zsh n'est pas installé, installation en cours..." 
+        sudo chsh -s $(which zsh)
         git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
         git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
-        sed -i 's/^ZSH_THEME=.*$/ZSH_THEME="powerlevel10k/powerlevel10k"/' "$HOME/.zshrc"
+        sed -i 's#^ZSH_THEME=.*$#ZSH_THEME="powerlevel10k/powerlevel10k"#' "$HOME/.zshrc"
         git clone --depth 1 "$FZF_REPO" "$HOME/.fzf"
         "$HOME/.fzf/install" --all
 
@@ -227,13 +221,11 @@ install_repo() {
         for plugin in "${ohmyzsh_plugins_remove[@]}"; do
             zsh -c "source $HOME/.zshrc && omz plugin disable $plugin || true"
         done
-        echo "Installation de oh-my-zsh terminée..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation de oh-my-zsh terminée..." 
 
     else
-        echo "Oh-my-zsh est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Oh-my-zsh est déjà installé sur le systeme..." 
     fi
-
-    echo "" | tee -a "$LOG_FILES_INSTALL"
 
     ### AUTRES INSTALLATION ICI
 
