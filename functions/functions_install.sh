@@ -728,7 +728,6 @@ install_conf() {
     sudo chmod +x /usr/share/sddm/scripts/Xsetup
 
     kitty +kitten themes --reload-in=all $KITTY
-    vim +PluginInstall +qall
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'INSTALLATION DE HYPRDOTS ===" | tee -a "$LOG_FILES_INSTALL"
