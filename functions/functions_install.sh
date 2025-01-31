@@ -179,25 +179,29 @@ install_repo() {
         "ssh-agent"
     )
 
+    zshrc_file="$HOME/.zshrc"
+    asdf_version="v0.16.0/asdf-v0.16.0-linux-amd64.tar.gz"
+
     ### REPO AUTOCPU-FREQ
-    echo "Recherche de l'installation de auto-cpufreq..." 
+    echo "Recherche de l'installation de auto-cpufreq..." | tee -a "$LOG_FILES_INSTALL"
     if ! command -v auto-cpufreq &> /dev/null
     then
 
-        echo "Auto-cpufreq n'est pas installé, installation en cours..." 
+        echo "Auto-cpufreq n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
         git clone "$AUTO_CPUFREQ" $HOME/.config/build/tmp/auto-cpufreq
         cd $HOME/.config/build/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
         sudo auto-cpufreq --install
-        echo "Installation de auto-cpufreq terminée..." 
+        echo "Installation de auto-cpufreq terminée..." | tee -a "$LOG_FILES_INSTALL"
     else
-        echo "Auto-cpufreq est déjà installé sur le systeme..." 
+        echo "Auto-cpufreq est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
     fi
 
     ### REPO OH-MY-ZSH
-    echo "Recherche de l'installation de oh-my-zsh..." 
+    echo "Recherche de l'installation de oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
+
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
 
-        echo "Oh-my-zsh n'est pas installé, installation en cours..." 
+        echo "Oh-my-zsh n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
         chsh --shell /bin/zsh
         git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
         git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
@@ -269,7 +273,10 @@ install_repo() {
 
         echo "Le fichier .zshrc a été créé avec succès à l'emplacement : $HOME/.zshrc" | tee -a "$LOG_FILES_INSTALL"
 
+        echo "Modification du theme zsh en powerlevel10k" | tee -a "$LOG_FILES_INSTALL"
         sed -i 's#^ZSH_THEME=.*$#ZSH_THEME="powerlevel10k/powerlevel10k"#' "$HOME/.zshrc"
+
+        echo "Installation de .fzf" | tee -a "$LOG_FILES_INSTALL"
         git clone --depth 1 "$FZF_REPO" "$HOME/.fzf"
         "$HOME/.fzf/install" --all
 
@@ -292,10 +299,39 @@ install_repo() {
         for plugin in "${ohmyzsh_plugins_remove[@]}"; do
             zsh -c "source $HOME/.zshrc && omz plugin disable $plugin || true"
         done
-        echo "Installation de oh-my-zsh terminée..." 
+        echo "Installation de oh-my-zsh terminée..." | tee -a "$LOG_FILES_INSTALL"
 
     else
-        echo "Oh-my-zsh est déjà installé sur le systeme..." 
+        echo "Oh-my-zsh est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
+    fi
+
+    # Repo asdf
+    if [ ! -f "$HOME/.local/bin/asdf" ]; then
+
+        echo "Installation de asdf..."
+        # Exemple d'installation, à adapter selon ta méthode
+        wget -P $HOME/.config/build/tmp https://github.com/asdf-vm/asdf/releases/download/$asdf_version 
+        tar -xvzf $HOME/.config/build/tmp/asdf-v0.16.0-linux-amd64.tar.gz -C $HOME/.local/bin
+
+        {
+            echo "# Configuration ASDF"
+
+            echo "export ASDF_DATA_DIR=\"\$HOME/.config/asdf\""
+            echo "export PATH=\"\$ASDF_DATA_DIR/shims:\$PATH\""
+
+            echo "mkdir -p \"\${ASDF_DATA_DIR:-\$HOME/.config/asdf}/completions\""
+            echo "asdf completion zsh > \"\${ASDF_DATA_DIR:-\$HOME/.config/asdf}/completions/_asdf\""
+
+            echo "fpath=(\${ASDF_DIR}/completions \$fpath)"
+            echo "autoload -Uz compinit && compinit"
+        } >> "$HOME/.zshrc"
+
+        echo "Les lignes ont été ajoutées avec succès."
+
+
+        
+    else
+        echo "Le fichier asdf existe déjà, aucune installation nécessaire..."
     fi
 
     ### AUTRES INSTALLATION ICI
