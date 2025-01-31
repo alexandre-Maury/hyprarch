@@ -161,27 +161,6 @@ install_paquages() {
 ##############################################################################
 install_repo() {
 
-    # Définir les variables
-    OHMYZSH_REPO="https://github.com/robbyrussell/oh-my-zsh.git"
-    FZF_REPO="https://github.com/junegunn/fzf.git"
-    POWERLEVEL10K_REPO="https://github.com/romkatv/powerlevel10k.git"
-    AUTO_CPUFREQ="https://github.com/AdnanHodzic/auto-cpufreq.git"
-
-    OHMYZSH_PLUGINS_REPO=(
-        "zsh-syntax-highlighting https://github.com/zsh-users/zsh-syntax-highlighting.git"
-        "zsh-autosuggestions https://github.com/zsh-users/zsh-autosuggestions.git"
-        "fast-syntax-highlighting https://github.com/zdharma-continuum/fast-syntax-highlighting.git"
-        "zsh-autocomplete https://github.com/marlonrichert/zsh-autocomplete.git"
-    )
-
-    ohmyzsh_plugins_remove=(
-        "rtx"
-        "ssh-agent"
-    )
-
-    zshrc_file="$HOME/.zshrc"
-    asdf_version="v0.16.0/asdf-v0.16.0-linux-amd64.tar.gz"
-
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== RECHERCHE DE L'INSTALLATION DES REPO GITHUB ET AUTRES ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
@@ -274,12 +253,12 @@ install_repo() {
             echo "    source \$XDG_RUNTIME_DIR/ssh-agent.env >/dev/null"
             echo "fi"
 
-        } > "$HOME/.zshrc"
+        } > "$ZSHRC_FILE"
 
-        echo "Le fichier .zshrc a été créé avec succès à l'emplacement : $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Le fichier .zshrc a été créé avec succès à l'emplacement : $ZSHRC_FILE..." | tee -a "$LOG_FILES_INSTALL"
 
         echo "Activation du theme zsh powerlevel10k..." | tee -a "$LOG_FILES_INSTALL"
-        sed -i 's#^ZSH_THEME=.*$#ZSH_THEME="powerlevel10k/powerlevel10k"#' "$HOME/.zshrc"
+        sed -i 's#^ZSH_THEME=.*$#ZSH_THEME="powerlevel10k/powerlevel10k"#' "$ZSHRC_FILE"
         echo "Activation du theme powerlevel10k avec succès..." | tee -a "$LOG_FILES_INSTALL"
 
         echo "Installation de .fzf..." | tee -a "$LOG_FILES_INSTALL"
@@ -306,7 +285,7 @@ install_repo() {
         echo "Fin de l'installation des plugins oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
 
         echo "Désactivation de certain plugin oh-my-zsh..."
-        for plugin in "${ohmyzsh_plugins_remove[@]}"; do
+        for plugin in "${OHMYZSH_PLUGINS_REMOVE[@]}"; do
             zsh -c "source $HOME/.zshrc && omz plugin disable $plugin || true"
         done
         echo "Fin de désactivation de certain plugin oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
@@ -320,8 +299,8 @@ install_repo() {
 
         echo "Installation de asdf..."
         # Exemple d'installation, à adapter selon ta méthode
-        wget -P $HOME/.config/build/tmp https://github.com/asdf-vm/asdf/releases/download/$asdf_version 
-        tar -xvzf $HOME/.config/build/tmp/asdf-v0.16.0-linux-amd64.tar.gz -C $HOME/.local/bin
+        wget -P $HOME/.config/build/tmp/asdf.tar.gz $ASDF_URL 
+        tar -xvzf $HOME/.config/build/tmp/asdf.tar.gz -C $HOME/.local/bin
 
         echo "Modification du fichier $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
         {
@@ -335,29 +314,18 @@ install_repo() {
 
             echo "fpath=(\${ASDF_DIR}/completions \$fpath)"
             echo "autoload -Uz compinit && compinit"
-        } >> "$HOME/.zshrc"
+        } >> "$ZSHRC_FILE"
 
-        echo "Les lignes ont été ajoutées avec succès dans $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Les lignes ont été ajoutées avec succès dans $ZSHRC_FILE..." | tee -a "$LOG_FILES_INSTALL"
 
         echo "Rechargement du fichier .zshrc..." | tee -a "$LOG_FILES_INSTALL"
-        source "$zshrc_file" &> /dev/null
+        source "$ZSHRC_FILE" &> /dev/null
 
         echo "Installation des plugins asdf" | tee -a "$LOG_FILES_INSTALL"
-        declare -A asdf_plugins=(
-            ["nodejs"]="https://github.com/asdf-vm/asdf-nodejs.git"
-            ["python"]="https://github.com/danhper/asdf-python"
-            ["ruby"]="https://github.com/asdf-vm/asdf-ruby.git"
-            ["java"]="https://github.com/halcyon/asdf-java.git"
-            ["golang"]="https://github.com/kennyp/asdf-golang.git"
-            ["elixir"]="https://github.com/asdf-vm/asdf-elixir.git"
-            ["php"]="https://github.com/asdf-community/asdf-php.git"
-            ["rust"]="https://github.com/code-lever/asdf-rust.git"
-            ["dotnet"]="https://github.com/hensou/asdf-dotnet.git"
-        )
 
         # Boucle pour installer les plugins
-        for git_plug in "${!asdf_plugins[@]}"; do
-            url="${asdf_plugins[$git_plug]}"
+        for git_plug in "${!ASDF_PLUGINS[@]}"; do
+            url="${ASDF_PLUGINS[$git_plug]}"
 
             # Vérifier si le plugin existe déjà
             if [ -d "$HOME/.config/asdf/plugins/$git_plug" ]; then
@@ -795,7 +763,7 @@ install_conf() {
     echo "=== DEBUT DE L'INSTALLATION DE HYPRDOTS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
-    git clone --recursive https://github.com/alexandre-Maury/hyprdots.git /opt/build/hyprdots
+    git clone --recursive $HYPRDOTS /opt/build/hyprdots
     cd /opt/build/hyprdots
 
     rsync -av --delete config/hypr/ $HOME/.config/hypr
