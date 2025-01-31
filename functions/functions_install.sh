@@ -182,6 +182,10 @@ install_repo() {
     zshrc_file="$HOME/.zshrc"
     asdf_version="v0.16.0/asdf-v0.16.0-linux-amd64.tar.gz"
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DES REPO GITHUB ET AUTRES ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
     ### REPO AUTOCPU-FREQ
     echo "Recherche de l'installation de auto-cpufreq..." | tee -a "$LOG_FILES_INSTALL"
     if ! command -v auto-cpufreq &> /dev/null
@@ -191,22 +195,23 @@ install_repo() {
         git clone "$AUTO_CPUFREQ" $HOME/.config/build/tmp/auto-cpufreq
         cd $HOME/.config/build/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
         sudo auto-cpufreq --install
-        echo "Installation de auto-cpufreq terminée..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation de auto-cpufreq avec succès..." | tee -a "$LOG_FILES_INSTALL"
     else
         echo "Auto-cpufreq est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
     fi
 
     ### REPO OH-MY-ZSH
-    echo "Recherche de l'installation de oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
+    echo "Recherche de l'installation de oh-my-zsh et de ses composants..." | tee -a "$LOG_FILES_INSTALL"
 
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
 
         echo "Oh-my-zsh n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
+
         chsh --shell /bin/zsh
         git clone "$OHMYZSH_REPO" "$HOME/.oh-my-zsh"
         git clone "$POWERLEVEL10K_REPO" "$HOME/.oh-my-zsh/custom/themes/powerlevel10k"
 
-        echo "Création du fichier .zshrc à l'emplacement : $HOME/.zshrc" | tee -a "$LOG_FILES_INSTALL"
+        echo "Création du fichier .zshrc à l'emplacement : $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
 
         {
             echo "# export PATH=\"\$HOME/.local/bin:\$PATH\""
@@ -271,15 +276,18 @@ install_repo() {
 
         } > "$HOME/.zshrc"
 
-        echo "Le fichier .zshrc a été créé avec succès à l'emplacement : $HOME/.zshrc" | tee -a "$LOG_FILES_INSTALL"
+        echo "Le fichier .zshrc a été créé avec succès à l'emplacement : $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
 
-        echo "Modification du theme zsh en powerlevel10k" | tee -a "$LOG_FILES_INSTALL"
+        echo "Activation du theme zsh powerlevel10k..." | tee -a "$LOG_FILES_INSTALL"
         sed -i 's#^ZSH_THEME=.*$#ZSH_THEME="powerlevel10k/powerlevel10k"#' "$HOME/.zshrc"
+        echo "Activation du theme powerlevel10k avec succès..." | tee -a "$LOG_FILES_INSTALL"
 
-        echo "Installation de .fzf" | tee -a "$LOG_FILES_INSTALL"
+        echo "Installation de .fzf..." | tee -a "$LOG_FILES_INSTALL"
         git clone --depth 1 "$FZF_REPO" "$HOME/.fzf"
         "$HOME/.fzf/install" --all
+        echo "Fin de l'installation de .fzf..." | tee -a "$LOG_FILES_INSTALL"
 
+        echo "Installation des plugins oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
         for plugin in "${OHMYZSH_PLUGINS_REPO[@]}"; do
             plugin_name=$(echo $plugin | awk '{print $1}')
             plugin_repo=$(echo $plugin | awk '{print $2}')
@@ -295,11 +303,13 @@ install_repo() {
         done
         plugin_string=$(printf "%s " "${plugin_list[@]}")
         sed -i "s/^plugins=(.*)/plugins=($plugin_string)/" "$HOME/.zshrc"
+        echo "Fin de l'installation des plugins oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
 
+        echo "Désactivation de certain plugin oh-my-zsh..."
         for plugin in "${ohmyzsh_plugins_remove[@]}"; do
             zsh -c "source $HOME/.zshrc && omz plugin disable $plugin || true"
         done
-        echo "Installation de oh-my-zsh terminée..." | tee -a "$LOG_FILES_INSTALL"
+        echo "Fin de désactivation de certain plugin oh-my-zsh..." | tee -a "$LOG_FILES_INSTALL"
 
     else
         echo "Oh-my-zsh est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
@@ -313,6 +323,7 @@ install_repo() {
         wget -P $HOME/.config/build/tmp https://github.com/asdf-vm/asdf/releases/download/$asdf_version 
         tar -xvzf $HOME/.config/build/tmp/asdf-v0.16.0-linux-amd64.tar.gz -C $HOME/.local/bin
 
+        echo "Modification du fichier $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
         {
             echo "# Configuration ASDF"
 
@@ -326,12 +337,72 @@ install_repo() {
             echo "autoload -Uz compinit && compinit"
         } >> "$HOME/.zshrc"
 
-        echo "Les lignes ont été ajoutées avec succès."
+        echo "Les lignes ont été ajoutées avec succès dans $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
 
+        echo "Rechargement du fichier .zshrc..." | tee -a "$LOG_FILES_INSTALL"
+        source "$zshrc_file" &> /dev/null
 
-        
+        echo "Installation des plugins asdf" | tee -a "$LOG_FILES_INSTALL"
+        declare -A asdf_plugins=(
+            ["nodejs"]="https://github.com/asdf-vm/asdf-nodejs.git"
+            ["python"]="https://github.com/danhper/asdf-python"
+            ["ruby"]="https://github.com/asdf-vm/asdf-ruby.git"
+            ["java"]="https://github.com/halcyon/asdf-java.git"
+            ["golang"]="https://github.com/kennyp/asdf-golang.git"
+            ["elixir"]="https://github.com/asdf-vm/asdf-elixir.git"
+            ["php"]="https://github.com/asdf-community/asdf-php.git"
+            ["rust"]="https://github.com/code-lever/asdf-rust.git"
+            ["dotnet"]="https://github.com/hensou/asdf-dotnet.git"
+        )
+
+        # Boucle pour installer les plugins
+        for git_plug in "${!asdf_plugins[@]}"; do
+            url="${asdf_plugins[$git_plug]}"
+
+            # Vérifier si le plugin existe déjà
+            if [ -d "$HOME/.config/asdf/plugins/$git_plug" ]; then
+                echo "Le plugin $git_plug est déjà installé, passage au suivant..." | tee -a "$LOG_FILES_INSTALL"
+                continue
+            fi
+
+            echo "Installation du plugin $git_plug depuis $url ..." | tee -a "$LOG_FILES_INSTALL"
+            if ! asdf plugin add "$git_plug" "$url"; then
+                echo "Erreur lors de l'installation du plugin $git_plug" | tee -a "$LOG_FILES_INSTALL"
+            else
+                echo "Plugin $git_plug installé avec succès" | tee -a "$LOG_FILES_INSTALL"
+            fi
+        done
+
+        # Partie usage (commentaire)
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "------------------------------------------"  | tee -a "$LOG_FILES_INSTALL"
+        echo "Utilisation basique de asdf :"  | tee -a "$LOG_FILES_INSTALL"
+        echo "------------------------------------------"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "1. Installer un plugin (exemple avec Node.js)"  | tee -a "$LOG_FILES_INSTALL"
+        echo "asdf plugin add nodejs https://github.com/asdf-vm/asdf-nodejs.git"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "2. Lister toutes les versions"  | tee -a "$LOG_FILES_INSTALL"
+        echo "asdf list all nodejs"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "3. Installer la dernière version stable de Node.js"  | tee -a "$LOG_FILES_INSTALL"
+        echo "asdf install nodejs latest"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "4. Définir la version globale de Node.js (utilisée par défaut)"  | tee -a "$LOG_FILES_INSTALL"
+        echo "asdf global nodejs latest"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "5. Vérifier la version installée de Node.js"  | tee -a "$LOG_FILES_INSTALL"
+        echo "node -v"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "6. Définir une version spécifique de Node.js pour un projet"  | tee -a "$LOG_FILES_INSTALL"
+        echo "asdf local nodejs 14.17.0"  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "Cela crée un fichier .tool-versions dans le répertoire courant pour définir cette version localement"  | tee -a "$LOG_FILES_INSTALL"
+        echo ""  | tee -a "$LOG_FILES_INSTALL"
+        echo  | tee -a "$LOG_FILES_INSTALL"
+        echo "------------------------------------------"  | tee -a "$LOG_FILES_INSTALL"
     else
-        echo "Le fichier asdf existe déjà, aucune installation nécessaire..."
+        echo "Le programe asdf existe déjà, aucune installation nécessaire..." | tee -a "$LOG_FILES_INSTALL"
     fi
 
     ### AUTRES INSTALLATION ICI
