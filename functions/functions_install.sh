@@ -205,6 +205,8 @@ install_repo() {
         echo "Création du fichier .zshrc à l'emplacement : $HOME/.zshrc" | tee -a "$LOG_FILES_INSTALL"
 
         {
+            echo "# export PATH=\"\$HOME/.local/bin:\$PATH\""
+
             echo "# Chemin vers votre installation Oh My Zsh."
             echo "export ZSH=\"\$HOME/.oh-my-zsh\""
 
@@ -253,9 +255,6 @@ install_repo() {
             echo "alias ls-all='ls -alF'"
             echo "alias ls-hidden='ls -A'"
             echo "alias ls-basic='ls -CF'"
-
-            echo "# export PATH=\"\$HOME/.local/bin:\$PATH\""
-            echo "# export PATH=\"\$PATH:~/.local/bin\""
 
             echo "# Ajouter ssh-agent et réutiliser celui qui a été créé"
             echo "if ! pgrep -u \$USER ssh-agent > /dev/null; then"
