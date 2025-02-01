@@ -340,43 +340,74 @@ install_cups() {
     echo "=== RECHERCHE DU PARAMÉTRAGE DE L'IMPRESSION === " | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
-    echo "Création du groupe lpadmin..." | tee -a "$LOG_FILES_INSTALL"
-    sudo groupadd lpadmin
+    cups_backup_file="${CUPS_CONF}.backup"
 
-    # 2. Ajuster la configuration du port d'écoute de Cups
-    echo "Ajustement de la configuration du port d'écoute de Cups..." | tee -a "$LOG_FILES_INSTALL"
-    sudo sed -i 's/^Browsing No/Browsing On/' /etc/cups/cupsd.conf
-    sudo sed -i 's/^Listen localhost:631/Port 631/' /etc/cups/cupsd.conf
+    # Création de la sauvegarde si elle n'existe pas
+    if [ ! -f "$cups_backup_file" ]; then
+        sudo cp "/etc/cups/cupsd.conf" "$cups_backup_file"
+        echo "Sauvegarde créée : $cups_backup_file" | sudo tee -a "$LOG_FILES_INSTALL"
+    fi
 
-    echo "Ajustement de la configuration pour écouter sur toutes les interfaces..." | tee -a "$LOG_FILES_INSTALL"
-    sudo bash -c 'cat <<EOF >> /etc/cups/cupsd.conf
+    # Vérifier si les groupes existent déjà
+    if ! getent group lpadmin > /dev/null 2>&1; then
+        echo "Création du groupe lpadmin..." | sudo tee -a "$LOG_FILES_INSTALL"
+        sudo groupadd lpadmin
+    else
+        echo "Le groupe lpadmin existe déjà." | sudo tee -a "$LOG_FILES_INSTALL"
+    fi
 
-    # Restrict access to the server...
-    <Location />
-    Order allow,deny
-    Allow @LOCAL
-    </Location>
-    #
-    EOF'
+    if ! getent group lp > /dev/null 2>&1; then
+        echo "Création du groupe lp..." | sudo tee -a "$LOG_FILES_INSTALL"
+        sudo groupadd lp
+    else
+        echo "Le groupe lp existe déjà." | sudo tee -a "$LOG_FILES_INSTALL"
+    fi
 
-    # 4. Ajuster la configuration du panneau d'administration de Cups
-    echo "Ajustement de la configuration du panneau d'administration de Cups..." | tee -a "$LOG_FILES_INSTALL"
-    sudo bash -c 'cat <<EOF >> /etc/cups/cupsd.conf
+    # Vérifier si l'utilisateur est déjà dans les groupes
+    if ! groups "$USER" | grep -q '\blpadmin\b'; then
+        sudo usermod -aG lpadmin "$USER"
+        echo "Utilisateur ajouté au groupe lpadmin." | sudo tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "L'utilisateur est déjà membre du groupe lpadmin." | sudo tee -a "$LOG_FILES_INSTALL"
+    fi
 
-    # Restrict access to the admin pages...
-    <Location /admin>
-    AuthType Default
-    Require valid-user
-    Order allow,deny
-    Allow @LOCAL
-    </Location>
-    #
-    EOF'
+    if ! groups "$USER" | grep -q '\blp\b'; then
+        sudo usermod -aG lp "$USER"
+        echo "Utilisateur ajouté au groupe lp." | sudo tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "L'utilisateur est déjà membre du groupe lp." | sudo tee -a "$LOG_FILES_INSTALL"
+    fi
 
-    # 5. Ajouter l'utilisateur au groupe lpadmin pour l'administration de Cups
-    echo "Ajout de l'utilisateur $USER au groupe lpadmin..." | tee -a "$LOG_FILES_INSTALL"
-    sudo usermod -aG lpadmin "$USER"
+    
+    # Suppression et ajout des directives d'écoute
+    sudo sed -i '/^Listen/d' "/etc/cups/cupsd.conf"
+    echo "Listen localhost:631" | sudo tee -a "/etc/cups/cupsd.conf" > /dev/null
+    echo "Listen /var/run/cups/cups.sock" | sudo tee -a "/etc/cups/cupsd.conf" > /dev/null
 
+    # Configuration des sections Location
+    local config="
+<Location />
+  Order allow,deny
+  Allow localhost
+</Location>
+
+<Location /admin>
+  Order allow,deny
+  Allow localhost
+  AuthType Default
+  Require valid-user
+</Location>
+
+<Location /admin/conf>
+  Order allow,deny
+  Allow localhost
+  AuthType Default
+  Require valid-user
+</Location>"
+
+    # Suppression des anciennes sections Location et ajout des nouvelles
+    sudo sed -i '/<Location/,/<\/Location>/d' "/etc/cups/cupsd.conf"
+    echo "$config" | sudo tee -a "/etc/cups/cupsd.conf" > /dev/null
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== RECHERCHE DU PARAMÉTRAGE DE L'IMPRESSION TERMINEE === " | tee -a "$LOG_FILES_INSTALL"

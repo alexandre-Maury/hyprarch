@@ -47,6 +47,9 @@ bluez-utils
 blueman
 cups
 foomatic-db
+cups-pdf
+ghostscript
+gsfonts
 # 4. Ces paquets sont relatifs à la gestion de l'audio et du multimédia :
 sof-firmware
 pipewire
