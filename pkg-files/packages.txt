@@ -17,6 +17,9 @@ udiskie
 arandr
 syshud
 system-config-printer
+virtualbox
+virtualbox-qt
+virtualbox-guest-utils
 # 2. Ces paquets concernent des outils d'administration système et de surveillance :
 ddcutil
 rsync
