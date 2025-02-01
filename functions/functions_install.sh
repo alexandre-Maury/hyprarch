@@ -44,6 +44,7 @@ config_system() {
     echo "Vérification de l'état du service de gestion du temps..." | tee -a "$LOG_FILES_INSTALL"
     timedatectl status | tee -a "$LOG_FILES_INSTALL"
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE LA CONFIGURATION DU SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 }
