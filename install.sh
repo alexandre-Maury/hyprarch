@@ -73,6 +73,7 @@ case "$1" in
     install_paru
     install_paquages
     install_repo
+    install_cups
     install_drivers
     install_fonts
     install_conf

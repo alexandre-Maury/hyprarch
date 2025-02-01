@@ -331,6 +331,60 @@ install_repo() {
 
 }
 
+##############################################################################
+## install_cups - Paramétrage de l'impression                              
+##############################################################################
+install_cups() {
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DU PARAMÉTRAGE DE L'IMPRESSION === " | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    echo "Création du groupe lpadmin..." | tee -a "$LOG_FILES_INSTALL"
+    sudo groupadd lpadmin
+
+    # 2. Ajuster la configuration du port d'écoute de Cups
+    echo "Ajustement de la configuration du port d'écoute de Cups..." | tee -a "$LOG_FILES_INSTALL"
+    sudo sed -i 's/^Browsing No/Browsing On/' /etc/cups/cupsd.conf
+    sudo sed -i 's/^Listen localhost:631/Port 631/' /etc/cups/cupsd.conf
+
+    echo "Ajustement de la configuration pour écouter sur toutes les interfaces..." | tee -a "$LOG_FILES_INSTALL"
+    sudo bash -c 'cat <<EOF >> /etc/cups/cupsd.conf
+
+    # Restrict access to the server...
+    <Location />
+    Order allow,deny
+    Allow @LOCAL
+    </Location>
+    #
+    EOF'
+
+    # 4. Ajuster la configuration du panneau d'administration de Cups
+    echo "Ajustement de la configuration du panneau d'administration de Cups..." | tee -a "$LOG_FILES_INSTALL"
+    sudo bash -c 'cat <<EOF >> /etc/cups/cupsd.conf
+
+    # Restrict access to the admin pages...
+    <Location /admin>
+    AuthType Default
+    Require valid-user
+    Order allow,deny
+    Allow @LOCAL
+    </Location>
+    #
+    EOF'
+
+    # 5. Ajouter l'utilisateur au groupe lpadmin pour l'administration de Cups
+    echo "Ajout de l'utilisateur $USER au groupe lpadmin..." | tee -a "$LOG_FILES_INSTALL"
+    sudo usermod -aG lpadmin "$USER"
+
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DU PARAMÉTRAGE DE L'IMPRESSION TERMINEE === " | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+
+}
+
 
 
 ##############################################################################
@@ -838,6 +892,8 @@ Activate_services() {
     systemctl --user enable pipewire 
     systemctl --user enable pipewire-pulse
     systemctl --user enable wireplumber
+
+    sudo systemctl enable --now cups
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"

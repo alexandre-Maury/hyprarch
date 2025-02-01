@@ -16,6 +16,7 @@ dunst
 udiskie
 arandr
 syshud
+system-config-printer
 # 2. Ces paquets concernent des outils d'administration système et de surveillance :
 ddcutil
 rsync
@@ -44,6 +45,8 @@ nm-connection-editor
 bluez
 bluez-utils
 blueman
+cups
+foomatic-db
 # 4. Ces paquets sont relatifs à la gestion de l'audio et du multimédia :
 sof-firmware
 pipewire
