@@ -18,9 +18,9 @@ config_system() {
     clear && echo
 
     if [[ "$git" =~ ^[yY]$ ]]; then
-
+        clear
         echo "Configuration des identifiants github..." | tee -a "$LOG_FILES_INSTALL"
-
+        echo
         read -p " [git] Entrez votre nom d'utilisateur : " git_name
         read -p " [git] Entrez votre adresse email : " git_email	
 
