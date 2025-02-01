@@ -194,7 +194,7 @@ install_repo() {
         echo "Création du fichier .zshrc à l'emplacement : $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
 
         {
-            echo "# export PATH=\"\$HOME/.local/bin:\$PATH\""
+            echo "export PATH=\"\$HOME/.local/bin:\$PATH\""
 
             echo "# Chemin vers votre installation Oh My Zsh."
             echo "export ZSH=\"\$HOME/.oh-my-zsh\""
