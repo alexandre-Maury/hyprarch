@@ -17,9 +17,12 @@ udiskie
 arandr
 syshud
 system-config-printer
-virtualbox
-virtualbox-qt
-virtualbox-guest-utils
+qemu
+libvirt
+virt-manager
+bridge-utils
+dnsmasq
+vde2
 # 2. Ces paquets concernent des outils d'administration système et de surveillance :
 ddcutil
 rsync
