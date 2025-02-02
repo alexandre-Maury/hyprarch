@@ -927,6 +927,8 @@ Activate_services() {
 
     sudo systemctl enable --now libvirtd
 
+    sudo usermod -aG libvirt $(whoami)
+
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
