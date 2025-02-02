@@ -925,9 +925,8 @@ Activate_services() {
 
     sudo systemctl enable --now cups
 
-    sudo systemctl enable --now libvirtd
-
     sudo usermod -aG libvirt $(whoami)
+    sudo systemctl enable --now libvirtd
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
