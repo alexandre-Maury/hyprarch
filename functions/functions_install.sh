@@ -928,6 +928,9 @@ Activate_services() {
     sudo usermod -aG libvirt $(whoami)
     sudo systemctl enable --now libvirtd
 
+    sudo usermod -aG docker $(id -u -n)
+    sudo systemctl enable docker.service
+
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
