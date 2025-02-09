@@ -905,6 +905,9 @@ install_cron() {
     echo "Vérifiez le statut avec : systemctl --user status $timer_name"
 }
 
+##############################################################################
+## install_firewall - Activation du Firewall                                              
+##############################################################################
 install_firewall() {
 
     # Définition des variables
