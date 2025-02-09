@@ -915,7 +915,6 @@ install_firewall() {
     NFTABLES_LOG="/var/log/nftables.log"
     JOURNALD_CONF="/etc/systemd/journald.conf"
     SERVICE_FILE="/etc/systemd/system/nftables-journald.service"
-    LOG_SERVICE="False"
 
     # Fonction pour gérer les erreurs
     handle_error() {
@@ -1047,50 +1046,41 @@ install_firewall() {
 
     } | sudo tee "$JOURNALD_CONF" > /dev/null
 
-    if [[ "$LOG_SERVICE" == "True" ]]; then
 
-        # Configuration du service systemd
-        echo "Configuration du service systemd..."
-        {
-            echo "[Unit]"
-            echo "Description=Règles de pare-feu nftables avec journald"
-            echo "After=network.target"
-            echo "Wants=network.target"
-            echo ""
-            echo "[Service]"
-            echo "Type=simple"
-            echo "ExecStartPre=/usr/sbin/nft -f /etc/nftables.conf"
-            echo "ExecStart=/bin/bash -c /usr/bin/journalctl -f -o cat -t kernel | /usr/bin/grep \"nft-drop:\""
-            echo "Restart=always"
-            echo "RestartSec=30"
-            echo "StandardOutput=journal"
-            echo "StandardError=journal"
-            echo "SyslogIdentifier=nftables-log"
-            echo ""
-            echo "[Install]"
-            echo "WantedBy=multi-user.target"
+    # Configuration du service systemd
+    echo "Configuration du service systemd..."
+    {
+        echo "[Unit]"
+        echo "Description=Règles de pare-feu nftables avec journald"
+        echo "After=network.target"
+        echo "Wants=network.target"
+        echo ""
+        echo "[Service]"
+        echo "Type=simple"
+        echo "ExecStartPre=/usr/sbin/nft -f /etc/nftables.conf"
+        echo "ExecStart=/bin/bash -c /usr/bin/journalctl -f -o cat -t kernel | /usr/bin/grep \"nft-drop:\""
+        echo "Restart=always"
+        echo "RestartSec=30"
+        echo "StandardOutput=journal"
+        echo "StandardError=journal"
+        echo "SyslogIdentifier=nftables-log"
+        echo ""
+        echo "[Install]"
+        echo "WantedBy=multi-user.target"
 
-        } | sudo tee "$SERVICE_FILE" > /dev/null
+    } | sudo tee "$SERVICE_FILE" > /dev/null
 
-        # Ajout de la tâche cron pour journaliser périodiquement
-        echo "Création de la tâche cron pour la collecte des logs toutes les 5 minutes..."
-        (crontab -l 2>/dev/null; echo "*/5 * * * * /usr/bin/journalctl -n 100 -o short -t nftables-log > $NFTABLES_LOG") | sudo crontab -
+    # Ajout de la tâche cron pour journaliser périodiquement
+    echo "Création de la tâche cron pour la collecte des logs toutes les 5 minutes..."
+    (crontab -l 2>/dev/null; echo "*/5 * * * * /usr/bin/journalctl -n 100 -o short -t nftables-log > $NFTABLES_LOG") | sudo crontab -
 
-        # Vérification du statut des services
-        sudo systemctl daemon-reload      
-        sudo systemctl enable --now nftables.service
-        sudo systemctl enable --now cronie.service
-        sudo systemctl enable --now nftables-journald.service
-
-    else
-
-        sudo systemctl daemon-reload      
-        sudo systemctl enable --now nftables.service
-
-    fi
+    # Vérification du statut des services
+    sudo systemctl daemon-reload      
+    sudo systemctl enable --now nftables.service
+    sudo systemctl enable --now cronie.service
+    sudo systemctl enable --now nftables-journald.service
 
     sudo truncate -s 0 $NFTABLES_LOG
-    sudo nft list ruleset
 
     echo "Configuration du pare-feu terminée avec succès"
 
