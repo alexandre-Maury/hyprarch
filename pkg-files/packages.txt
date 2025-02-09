@@ -41,6 +41,7 @@ indicator-sensors
 brightnessctl
 xorg-xrandr
 zsh
+nftables
 # 3. Ces paquets sont relatifs à la gestion du réseau, des connexions sans fil et des périphériques Bluetooth :
 wpa_supplicant
 iwd
