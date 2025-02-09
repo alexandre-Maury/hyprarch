@@ -912,30 +912,15 @@ install_firewall() {
 
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
-    NFTABLES_LOG="/var/log/nftables.log"
-    JOURNALD_CONF="/etc/systemd/journald.conf"
-    SERVICE_FILE="/etc/systemd/system/nftables-journald.service"
+    # NFTABLES_LOG="/var/log/nftables.log"
+    # JOURNALD_CONF="/etc/systemd/journald.conf"
+    # SERVICE_FILE="/etc/systemd/system/nftables-journald.service"
 
     # Fonction pour gérer les erreurs
     handle_error() {
         echo "Erreur : $1" >&2
         exit 1
     }
-
-    # Vérification que sudo est disponible
-    if ! command -v sudo &> /dev/null; then
-        handle_error "sudo n'est pas installé. Veuillez l'installer pour continuer."
-    fi
-
-    # Vérification et installation de nftables
-    echo "Vérification des dépendances..."
-    if ! command -v nft &> /dev/null; then
-        if command -v yay &> /dev/null; then
-            yay -S --noconfirm nftables || handle_error "Installation de nftables échouée"
-        else
-            handle_error "yay n'est pas installé. Veuillez installer yay ou nftables manuellement"
-        fi
-    fi
 
 
     # Configuration des règles nftables
@@ -1027,60 +1012,51 @@ install_firewall() {
     # Sauvegarde de la configuration
     sudo nft list ruleset | sudo tee "$NFTABLES_CONF" > /dev/null
 
-    sudo groupadd nftables
-    sudo usermod -aG nftables $USER
-    sudo touch $NFTABLES_LOG
-    sudo chown root:nftables $NFTABLES_LOG
-    sudo chmod 640 $NFTABLES_LOG
+    #sudo groupadd nftables
+    #sudo usermod -aG nftables $USER
+    #sudo touch $NFTABLES_LOG
+    #sudo chown root:nftables $NFTABLES_LOG
+    #sudo chmod 640 $NFTABLES_LOG
 
     # Configuration de journald
-    echo "Configuration de journald..."
-    {
-        echo "[Journal]"
-        echo "SystemMaxUse=100M"
-        echo "SystemMaxFileSize=100M"
-        echo "SystemMaxFiles=4"
-        echo "Storage=persistent"
-        echo "Compress=yes"
-        echo "ForwardToSyslog=yes"
+    #echo "Configuration de journald..."
+    #{
+        #echo "[Journal]"
+        #echo "SystemMaxUse=100M"
+        #echo "SystemMaxFileSize=100M"
+        #echo "SystemMaxFiles=4"
+        #echo "Storage=persistent"
+        #echo "Compress=yes"
+        #echo "ForwardToSyslog=yes"
 
-    } | sudo tee "$JOURNALD_CONF" > /dev/null
+    #} | sudo tee "$JOURNALD_CONF" > /dev/null
 
+    ## Configuration du service systemd
+    #echo "Configuration du service systemd..."
+    #{
+        #echo "[Unit]"
+        #echo "Description=Règles de pare-feu nftables avec journald"
+        #echo "After=network.target"
+        #echo "Wants=network.target"
+        #echo ""
+        #echo "[Service]"
+        #echo "Type=simple"
+        #echo "ExecStartPre=/usr/sbin/nft -f /etc/nftables.conf"
+        #echo "ExecStart=/bin/bash -c /usr/bin/journalctl -f -o cat -t kernel | /usr/bin/grep \"nft-drop:\""
+        #echo "Restart=always"
+        #echo "RestartSec=30"
+        #echo "StandardOutput=journal"
+        #echo "StandardError=journal"
+        #echo "SyslogIdentifier=nftables-log"
+        #echo ""
+        #echo "[Install]"
+        #echo "WantedBy=multi-user.target"
 
-    # Configuration du service systemd
-    echo "Configuration du service systemd..."
-    {
-        echo "[Unit]"
-        echo "Description=Règles de pare-feu nftables avec journald"
-        echo "After=network.target"
-        echo "Wants=network.target"
-        echo ""
-        echo "[Service]"
-        echo "Type=simple"
-        echo "ExecStartPre=/usr/sbin/nft -f /etc/nftables.conf"
-        echo "ExecStart=/bin/bash -c /usr/bin/journalctl -f -o cat -t kernel | /usr/bin/grep \"nft-drop:\""
-        echo "Restart=always"
-        echo "RestartSec=30"
-        echo "StandardOutput=journal"
-        echo "StandardError=journal"
-        echo "SyslogIdentifier=nftables-log"
-        echo ""
-        echo "[Install]"
-        echo "WantedBy=multi-user.target"
-
-    } | sudo tee "$SERVICE_FILE" > /dev/null
+    #} | sudo tee "$SERVICE_FILE" > /dev/null
 
     # Ajout de la tâche cron pour journaliser périodiquement
-    echo "Création de la tâche cron pour la collecte des logs toutes les 5 minutes..."
-    (crontab -l 2>/dev/null; echo "*/5 * * * * /usr/bin/journalctl -n 100 -o short -t nftables-log > $NFTABLES_LOG") | sudo crontab -
-
-    # Vérification du statut des services
-    sudo systemctl daemon-reload      
-    sudo systemctl enable --now nftables.service
-    sudo systemctl enable --now cronie.service
-    sudo systemctl enable --now nftables-journald.service
-
-    sudo truncate -s 0 $NFTABLES_LOG
+    #echo "Création de la tâche cron pour la collecte des logs toutes les 5 minutes..."
+    #(crontab -l 2>/dev/null; echo "*/5 * * * * /usr/bin/journalctl -n 100 -o short -t nftables-log > $NFTABLES_LOG") | sudo crontab -
 
     echo "Configuration du pare-feu terminée avec succès"
 
