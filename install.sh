@@ -78,6 +78,7 @@ case "$1" in
     install_fonts
     install_conf
     # install_cron
+    install_firewall
     Activate_services
     ;;
 

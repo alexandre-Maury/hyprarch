@@ -905,6 +905,194 @@ install_cron() {
     echo "Vérifiez le statut avec : systemctl --user status $timer_name"
 }
 
+install_firewall() {
+
+    # Définition des variables
+    NFTABLES_CONF="/etc/nftables.conf"
+    NFTABLES_LOG="/var/log/nftables.log"
+    JOURNALD_CONF="/etc/systemd/journald.conf"
+    SERVICE_FILE="/etc/systemd/system/nftables-journald.service"
+    LOG_SERVICE="False"
+
+    # Fonction pour gérer les erreurs
+    handle_error() {
+        echo "Erreur : $1" >&2
+        exit 1
+    }
+
+    # Vérification que sudo est disponible
+    if ! command -v sudo &> /dev/null; then
+        handle_error "sudo n'est pas installé. Veuillez l'installer pour continuer."
+    fi
+
+    # Vérification et installation de nftables
+    echo "Vérification des dépendances..."
+    if ! command -v nft &> /dev/null; then
+        if command -v yay &> /dev/null; then
+            yay -S --noconfirm nftables || handle_error "Installation de nftables échouée"
+        else
+            handle_error "yay n'est pas installé. Veuillez installer yay ou nftables manuellement"
+        fi
+    fi
+
+
+    # Configuration des règles nftables
+    temp_rules=$(mktemp)
+    trap 'rm -f "$temp_rules"' EXIT
+
+    {
+        echo "#!/usr/sbin/nft -f"
+        echo "flush ruleset"
+
+        echo "# Création de la table et des chaînes"
+        echo "add table inet firewall"
+        echo "add chain inet firewall input { type filter hook input priority 0 ; policy drop ; }"
+        echo "add chain inet firewall output { type filter hook output priority 0 ; policy accept ; }"
+        echo "add chain inet firewall forward { type filter hook forward priority 0 ; policy drop ; }"
+
+        echo "# Règles de base pour la chaîne input"
+        echo "add rule inet firewall input ct state established,related accept"
+        echo "add rule inet firewall input ct state invalid drop"
+        echo "add rule inet firewall input iif lo accept"
+
+        echo "# Protection contre les attaques TCP de base"
+        echo "add rule inet firewall input tcp flags & (fin|syn) == fin|syn drop"
+        echo "add rule inet firewall input tcp flags & (syn|rst) == syn|rst drop"
+        echo "add rule inet firewall input tcp flags & (fin|syn|rst|psh|ack|urg) < fin drop"
+        echo "add rule inet firewall input tcp flags & fin != 0 ct state new drop"
+
+        echo "# Protection DoS/DDoS"
+        echo "add rule inet firewall input tcp flags syn tcp dport {80, 443} limit rate 30/minute accept"
+        echo "add rule inet firewall input tcp flags syn limit rate 20/second burst 50 packets accept"
+        echo "add rule inet firewall input udp dport 0-65535 limit rate 100/second burst 100 packets accept"
+        echo "add rule inet firewall input icmp type echo-request limit rate 10/second accept"
+
+        echo "# Protection contre le scan de ports"
+        echo "add rule inet firewall input tcp flags syn tcp dport 0-19 drop"
+        echo "add rule inet firewall input tcp flags syn tcp dport 137-139 drop"
+        echo "add rule inet firewall input tcp flags syn ct state new limit rate 10/second accept"
+
+        echo "# Protection contre les paquets fragmentés"
+        echo "# Bloque tous les paquets fragmentés"
+        echo "# add rule inet firewall input ip frag-off & 1 == 1 drop"
+        echo "# add rule inet firewall input ip frag-off & 8191 != 0 drop"
+        echo "# Bloque les paquets fragmentés sauf ceux venant de l'interface VPN (tun0) :"
+        echo "# add rule inet firewall input iif != \"tun0\" ip frag-off & 1 == 1 drop"
+        echo "# add rule inet firewall input iif != \"tun0\" ip frag-off & 8191 != 0 drop"
+        echo "# Accepte les fragments de paquets, mais limite le taux"
+        echo "add rule inet firewall input ip frag-off & 1 == 1 limit rate 10/second accept"
+        echo "add rule inet firewall input ip frag-off & 8191 != 0 limit rate 10/second accept"
+
+        echo "# Protection anti-spoofing"
+        echo "add rule inet firewall input ip saddr 127.0.0.0/8 iif != \"lo\" drop"
+        echo "add rule inet firewall input ip saddr 0.0.0.0/8 drop"
+        echo "add rule inet firewall input ip saddr 169.254.0.0/16 drop"
+        echo "add rule inet firewall input ip saddr 224.0.0.0/4 drop"
+
+        echo "# Protection contre les scans furtifs"
+        echo "add rule inet firewall input tcp flags & (fin|syn|rst|ack) == 0 drop"
+        echo "add rule inet firewall input tcp flags & (fin|syn|rst|psh|ack|urg) == fin|psh|urg drop"
+
+        echo "# Protection contre les attaques par amplification"
+        echo "add rule inet firewall input udp dport 17 drop"
+        echo "add rule inet firewall input udp dport 19 drop"
+        echo "add rule inet firewall input udp dport 123 drop"
+        echo "add rule inet firewall input udp dport 161 drop"
+        echo "add rule inet firewall input udp dport 1900 drop"
+        echo "add rule inet firewall input udp dport 11211 drop"
+
+        echo "# Protection des services sensibles"
+        echo "add rule inet firewall input tcp dport 22 ct state new limit rate 5/minute accept"
+        echo "add rule inet firewall input tcp dport { 3306, 5432 } drop"
+
+        echo "# Logging et rejet final"
+        echo "add rule inet firewall input log prefix \"nft-drop: \" level debug flags all"
+        echo "add rule inet firewall input counter drop"
+
+    } > "$temp_rules"
+
+    # Application des règles avec sudo
+    echo "Application des règles nftables..."
+    if ! sudo nft -f "$temp_rules"; then
+        handle_error "Application des règles nftables échouée"
+    fi
+
+    # Vérification de l'application des règles
+    if ! sudo nft list ruleset | grep -q "nft-drop:"; then
+        handle_error "Les règles n'ont pas été appliquées correctement"
+    fi
+
+    # Sauvegarde de la configuration
+    sudo nft list ruleset | sudo tee "$NFTABLES_CONF" > /dev/null
+
+    sudo groupadd nftables
+    sudo usermod -aG nftables $USER
+    sudo touch $NFTABLES_LOG
+    sudo chown root:nftables $NFTABLES_LOG
+    sudo chmod 640 $NFTABLES_LOG
+
+    # Configuration de journald
+    echo "Configuration de journald..."
+    {
+        echo "[Journal]"
+        echo "SystemMaxUse=100M"
+        echo "SystemMaxFileSize=100M"
+        echo "SystemMaxFiles=4"
+        echo "Storage=persistent"
+        echo "Compress=yes"
+        echo "ForwardToSyslog=yes"
+
+    } | sudo tee "$JOURNALD_CONF" > /dev/null
+
+    if [[ "$LOG_SERVICE" == "True" ]]; then
+
+        # Configuration du service systemd
+        echo "Configuration du service systemd..."
+        {
+            echo "[Unit]"
+            echo "Description=Règles de pare-feu nftables avec journald"
+            echo "After=network.target"
+            echo "Wants=network.target"
+            echo ""
+            echo "[Service]"
+            echo "Type=simple"
+            echo "ExecStartPre=/usr/sbin/nft -f /etc/nftables.conf"
+            echo "ExecStart=/bin/bash -c /usr/bin/journalctl -f -o cat -t kernel | /usr/bin/grep \"nft-drop:\""
+            echo "Restart=always"
+            echo "RestartSec=30"
+            echo "StandardOutput=journal"
+            echo "StandardError=journal"
+            echo "SyslogIdentifier=nftables-log"
+            echo ""
+            echo "[Install]"
+            echo "WantedBy=multi-user.target"
+
+        } | sudo tee "$SERVICE_FILE" > /dev/null
+
+        # Ajout de la tâche cron pour journaliser périodiquement
+        echo "Création de la tâche cron pour la collecte des logs toutes les 5 minutes..."
+        (crontab -l 2>/dev/null; echo "*/5 * * * * /usr/bin/journalctl -n 100 -o short -t nftables-log > $NFTABLES_LOG") | sudo crontab -
+
+        # Vérification du statut des services
+        sudo systemctl daemon-reload      
+        sudo systemctl enable --now nftables.service
+        sudo systemctl enable --now cronie.service
+        sudo systemctl enable --now nftables-journald.service
+
+    else
+
+        sudo systemctl daemon-reload      
+        sudo systemctl enable --now nftables.service
+
+    fi
+
+    sudo truncate -s 0 $NFTABLES_LOG
+    sudo nft list ruleset
+
+    echo "Configuration du pare-feu terminée avec succès"
+
+}
+
 ##############################################################################
 ## Activate_services - Activation des services                                              
 ##############################################################################
