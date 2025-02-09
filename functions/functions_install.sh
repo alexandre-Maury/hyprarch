@@ -1088,6 +1088,11 @@ Activate_services() {
     sudo usermod -aG docker $(id -u -n)
     sudo systemctl enable docker.service
 
+    # sudo systemctl daemon-reload      
+    sudo systemctl enable --now nftables.service
+    # sudo systemctl enable --now cronie.service
+    # sudo systemctl enable --now nftables-journald.service
+
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
