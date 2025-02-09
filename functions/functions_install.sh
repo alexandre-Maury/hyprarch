@@ -912,7 +912,7 @@ install_firewall() {
 
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
-    # NFTABLES_LOG="/var/log/nftables.log"
+    NFTABLES_LOG="/var/log/nftables.log"
     # JOURNALD_CONF="/etc/systemd/journald.conf"
     # SERVICE_FILE="/etc/systemd/system/nftables-journald.service"
 
@@ -1012,11 +1012,11 @@ install_firewall() {
     # Sauvegarde de la configuration
     sudo nft list ruleset | sudo tee "$NFTABLES_CONF" > /dev/null
 
-    #sudo groupadd nftables
-    #sudo usermod -aG nftables $USER
-    #sudo touch $NFTABLES_LOG
-    #sudo chown root:nftables $NFTABLES_LOG
-    #sudo chmod 640 $NFTABLES_LOG
+    sudo groupadd nftables
+    sudo usermod -aG nftables $USER
+    sudo touch $NFTABLES_LOG
+    sudo chown root:nftables $NFTABLES_LOG
+    sudo chmod 640 $NFTABLES_LOG
 
     # Configuration de journald
     #echo "Configuration de journald..."
