@@ -3,6 +3,7 @@
 # script functions_install.sh
 
 # https://hyprpanel.com/getting_started/hyprpanel.html
+# https://github.com/jasonxtn/Lucille
 
 ##############################################################################
 ## config_system - Configuration du systeme                                                 
@@ -913,15 +914,15 @@ install_firewall() {
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
     NFTABLES_LOG="/var/log/nftables.log"
-    # JOURNALD_CONF="/etc/systemd/journald.conf"
-    # SERVICE_FILE="/etc/systemd/system/nftables-journald.service"
+    JOURNALD_CONF="/etc/systemd/journald.conf"
+    RSYSLOG_CONF="/etc/rsyslog.conf"
+    LOGROTATE_CONF="/etc/logrotate.d/rsyslog"
 
     # Fonction pour gérer les erreurs
     handle_error() {
         echo "Erreur : $1" >&2
         exit 1
     }
-
 
     # Configuration des règles nftables
     temp_rules=$(mktemp)
@@ -931,68 +932,86 @@ install_firewall() {
         echo "#!/usr/sbin/nft -f"
         echo "flush ruleset"
 
-        echo "# Création de la table et des chaînes"
+        # Table principale
         echo "add table inet firewall"
+
+        # Création des sets
+        echo "add set inet firewall blacklist { type ipv4_addr; flags dynamic, timeout; timeout 1h; }"
+
+        # Chaînes principales
         echo "add chain inet firewall input { type filter hook input priority 0 ; policy drop ; }"
-        echo "add chain inet firewall output { type filter hook output priority 0 ; policy accept ; }"
+        echo "add chain inet firewall output { type filter hook output priority 0 ; policy accept ; }"  
         echo "add chain inet firewall forward { type filter hook forward priority 0 ; policy drop ; }"
 
-        echo "# Règles de base pour la chaîne input"
+        # Chaînes spécialisées
+        echo "add chain inet firewall tcp_attacks"
+        echo "add chain inet firewall dos_protection"
+        echo "add chain inet firewall port_scan"
+        echo "add chain inet firewall fragment_protection"
+        echo "add chain inet firewall stealth_scan"
+        echo "add chain inet firewall amplification_protection"
+        echo "add chain inet firewall sensitive_services"
+        echo "add chain inet firewall anti_spoofing"
+        echo "add chain inet firewall icmp_protection"
+
+        # Règles de base 
         echo "add rule inet firewall input ct state established,related accept"
         echo "add rule inet firewall input ct state invalid drop"
         echo "add rule inet firewall input iif lo accept"
 
-        echo "# Protection contre les attaques TCP de base"
-        echo "add rule inet firewall input tcp flags & (fin|syn) == fin|syn drop"
-        echo "add rule inet firewall input tcp flags & (syn|rst) == syn|rst drop"
-        echo "add rule inet firewall input tcp flags & (fin|syn|rst|psh|ack|urg) < fin drop"
-        echo "add rule inet firewall input tcp flags & fin != 0 ct state new drop"
+        # Configuration de la chaîne tcp_attacks
+        echo "add rule inet firewall input ip protocol tcp jump tcp_attacks"
+        echo "add rule inet firewall tcp_attacks tcp flags & (fin|syn) == fin|syn drop"
+        echo "add rule inet firewall tcp_attacks tcp flags & (syn|rst) == syn|rst drop"
+        echo "add rule inet firewall tcp_attacks tcp flags & (fin|syn|rst|psh|ack|urg) < fin drop"
+        echo "add rule inet firewall tcp_attacks tcp flags & fin != 0 ct state new drop"
 
-        echo "# Protection DoS/DDoS"
-        echo "add rule inet firewall input tcp flags syn tcp dport {80, 443} limit rate 30/minute accept"
-        echo "add rule inet firewall input tcp flags syn limit rate 20/second burst 50 packets accept"
-        echo "add rule inet firewall input udp dport 0-65535 limit rate 100/second burst 100 packets accept"
-        echo "add rule inet firewall input icmp type echo-request limit rate 10/second accept"
+        # Configuration de la chaîne dos_protection avec rate limiting
+        echo "add rule inet firewall input jump dos_protection"
+        echo "add rule inet firewall dos_protection tcp flags syn tcp dport {80, 443} limit rate 100/minute drop"  
+        echo "add rule inet firewall dos_protection tcp flags syn limit rate 60/second burst 200 packets drop"  
+        echo "add rule inet firewall dos_protection udp dport 0-65535 limit rate 250/second burst 300 packets drop"   
 
-        echo "# Protection contre le scan de ports"
-        echo "add rule inet firewall input tcp flags syn tcp dport 0-19 drop"
-        echo "add rule inet firewall input tcp flags syn tcp dport 137-139 drop"
-        echo "add rule inet firewall input tcp flags syn ct state new limit rate 10/second accept"
+        # Configuration de la chaîne port_scan
+        echo "add rule inet firewall input jump port_scan"
+        echo "add rule inet firewall port_scan tcp flags syn tcp dport 0-1023 limit rate 50/minute drop"
+        echo "add rule inet firewall port_scan tcp flags syn ct state new limit rate 30/second drop"
 
-        echo "# Protection contre les paquets fragmentés"
-        echo "# Bloque tous les paquets fragmentés"
-        echo "# add rule inet firewall input ip frag-off & 1 == 1 drop"
-        echo "# add rule inet firewall input ip frag-off & 8191 != 0 drop"
-        echo "# Bloque les paquets fragmentés sauf ceux venant de l'interface VPN (tun0) :"
-        echo "# add rule inet firewall input iif != \"tun0\" ip frag-off & 1 == 1 drop"
-        echo "# add rule inet firewall input iif != \"tun0\" ip frag-off & 8191 != 0 drop"
-        echo "# Accepte les fragments de paquets, mais limite le taux"
-        echo "add rule inet firewall input ip frag-off & 1 == 1 limit rate 10/second accept"
-        echo "add rule inet firewall input ip frag-off & 8191 != 0 limit rate 10/second accept"
+        # Configuration de la chaîne fragment_protection
+        echo "add rule inet firewall input ip frag-off != 0 jump fragment_protection"
+        echo "add rule inet firewall fragment_protection limit rate 200/second drop"  
 
-        echo "# Protection anti-spoofing"
-        echo "add rule inet firewall input ip saddr 127.0.0.0/8 iif != \"lo\" drop"
-        echo "add rule inet firewall input ip saddr 0.0.0.0/8 drop"
-        echo "add rule inet firewall input ip saddr 169.254.0.0/16 drop"
-        echo "add rule inet firewall input ip saddr 224.0.0.0/4 drop"
+        # Configuration de la chaîne stealth_scan
+        echo "add rule inet firewall input tcp flags != 0 jump stealth_scan"
+        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == 0 drop"
+        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|psh|ack|urg) == fin|psh|urg drop"
+        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == fin drop"
+        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == fin|syn drop"
 
-        echo "# Protection contre les scans furtifs"
-        echo "add rule inet firewall input tcp flags & (fin|syn|rst|ack) == 0 drop"
-        echo "add rule inet firewall input tcp flags & (fin|syn|rst|psh|ack|urg) == fin|psh|urg drop"
+        # Configuration de la chaîne amplification_protection
+        echo "add rule inet firewall input udp dport != 0 jump amplification_protection"
+        echo "add rule inet firewall amplification_protection udp dport 53 ct state new limit rate 100/second drop"
+        echo "add rule inet firewall amplification_protection udp dport { 123, 1900, 161, 11211, 389, 19, 17 } drop"
 
-        echo "# Protection contre les attaques par amplification"
-        echo "add rule inet firewall input udp dport 17 drop"
-        echo "add rule inet firewall input udp dport 19 drop"
-        echo "add rule inet firewall input udp dport 123 drop"
-        echo "add rule inet firewall input udp dport 161 drop"
-        echo "add rule inet firewall input udp dport 1900 drop"
-        echo "add rule inet firewall input udp dport 11211 drop"
+        # Configuration de la chaîne sensitive_services
+        echo "add rule inet firewall input jump sensitive_services"
+        # echo "add rule inet firewall sensitive_services tcp dport 22 ct state new limit rate 10/minute accept"
+        echo "add rule inet firewall sensitive_services tcp dport { 22, 3306, 5432, 8080, 8443, 10000, 9090, 9100, 9200 } drop"
+        
+        # Configuration de la chaîne anti_spoofing
+        echo "add rule inet firewall input jump anti_spoofing"
+        echo "add rule inet firewall anti_spoofing ip saddr @blacklist counter drop"
 
-        echo "# Protection des services sensibles"
-        echo "add rule inet firewall input tcp dport 22 ct state new limit rate 5/minute accept"
-        echo "add rule inet firewall input tcp dport { 3306, 5432 } drop"
+        # Règles pour ajouter à la blacklist
+        echo "add rule inet firewall anti_spoofing ip saddr 127.0.0.0/8 iif != "lo" add @blacklist { ip saddr }"
+        echo "add rule inet firewall anti_spoofing ip saddr { 0.0.0.0/8, 169.254.0.0/16, 224.0.0.0/4 } add @blacklist { ip saddr }"
 
-        echo "# Logging et rejet final"
+        # Configuration de la chaîne icmp_protection
+        echo "add rule inet firewall input ip protocol icmp jump icmp_protection"  
+        echo "add rule inet firewall icmp_protection icmp type echo-request limit rate 30/second drop"  
+        echo "add rule inet firewall icmp_protection icmp type { redirect, router-advertisement } drop"
+
+        # Journalisation finale
         echo "add rule inet firewall input log prefix \"nft-drop: \" level debug flags all"
         echo "add rule inet firewall input counter drop"
 
@@ -1012,51 +1031,78 @@ install_firewall() {
     # Sauvegarde de la configuration
     sudo nft list ruleset | sudo tee "$NFTABLES_CONF" > /dev/null
 
-    sudo groupadd nftables
+
+    if ! getent group nftables >/dev/null; then
+        sudo groupadd nftables
+    fi
+
     sudo usermod -aG nftables $USER
-    sudo touch $NFTABLES_LOG
-    sudo chown root:nftables $NFTABLES_LOG
-    sudo chmod 640 $NFTABLES_LOG
+
+    sudo mkdir -p /var/spool/rsyslog
+    sudo chown root:nftables /var/spool/rsyslog
+    sudo chmod 755 /var/spool/rsyslog
+
+    sudo mkdir -p /var/log/nftables
+
+    sudo touch /var/log/nftables/input.log
+    sudo chown root:nftables /var/log/nftables/input.log
+    sudo chmod 640 /var/log/nftables/input.log
 
     # Configuration de journald
-    #echo "Configuration de journald..."
-    #{
-        #echo "[Journal]"
-        #echo "SystemMaxUse=100M"
-        #echo "SystemMaxFileSize=100M"
-        #echo "SystemMaxFiles=4"
-        #echo "Storage=persistent"
-        #echo "Compress=yes"
-        #echo "ForwardToSyslog=yes"
+    echo "Configuration de journald..."
+    {
+        echo "[Journal]"
+        echo "SystemMaxUse=200M"
+        echo "SystemMaxFileSize=100M"
+        echo "SystemMaxFiles=5"
+        echo "Storage=persistent"
+        echo "Compress=yes"
+        echo "ForwardToSyslog=yes"
+    } | sudo tee "$JOURNALD_CONF" > /dev/null
 
-    #} | sudo tee "$JOURNALD_CONF" > /dev/null
+    # Configuration de rsyslog.conf
+    echo "Configuration de rsyslog..."
+    {
+        echo "module(load=\"imuxsock\")"
+        echo "module(load=\"imklog\")"
 
-    ## Configuration du service systemd
-    #echo "Configuration du service systemd..."
-    #{
-        #echo "[Unit]"
-        #echo "Description=Règles de pare-feu nftables avec journald"
-        #echo "After=network.target"
-        #echo "Wants=network.target"
-        #echo ""
-        #echo "[Service]"
-        #echo "Type=simple"
-        #echo "ExecStartPre=/usr/sbin/nft -f /etc/nftables.conf"
-        #echo "ExecStart=/bin/bash -c /usr/bin/journalctl -f -o cat -t kernel | /usr/bin/grep \"nft-drop:\""
-        #echo "Restart=always"
-        #echo "RestartSec=30"
-        #echo "StandardOutput=journal"
-        #echo "StandardError=journal"
-        #echo "SyslogIdentifier=nftables-log"
-        #echo ""
-        #echo "[Install]"
-        #echo "WantedBy=multi-user.target"
+        echo "$FileOwner root"
+        echo "$FileGroup nftables"
+        echo "$FileCreateMode 0640"
+        echo "$DirCreateMode 0755"
+        echo "$Umask 0022"
+        echo "$WorkDirectory /var/spool/rsyslog"
 
-    #} | sudo tee "$SERVICE_FILE" > /dev/null
+        echo ":msg, contains, \"nft-drop:\" -/var/log/nftables/input.log"
+        echo "& stop"
 
-    # Ajout de la tâche cron pour journaliser périodiquement
-    #echo "Création de la tâche cron pour la collecte des logs toutes les 5 minutes..."
-    #(crontab -l 2>/dev/null; echo "*/5 * * * * /usr/bin/journalctl -n 100 -o short -t nftables-log > $NFTABLES_LOG") | sudo crontab -
+        echo "*.*;auth,authpriv.none          -/var/log/syslog"
+        echo "auth,authpriv.*                 /var/log/auth.log"
+        echo "cron.*                          -/var/log/cron.log"
+        echo "kern.*                          -/var/log/kern.log"
+        echo "mail.*                          -/var/log/mail.log"
+        echo "user.*                          -/var/log/user.log"
+        echo "*.emerg                         :omusrmsg:*"
+        
+    } | sudo tee "$RSYSLOG_CONF" > /dev/null
+
+    # Configurer logrotate
+    echo "Configuration de logrotate..."
+    {
+        echo "/var/log/nftables/*.log {"
+        echo "    daily"
+        echo "    rotate 365"
+        echo "    size 100M"
+        echo "    missingok"
+        echo "    notifempty"
+        echo "    compress"
+        echo "    delaycompress"
+        echo "    sharedscripts"
+        echo "    postrotate"
+        echo "        /usr/bin/systemctl kill -s HUP rsyslog.service >/dev/null 2>&1 || true"
+        echo "    endscript"
+        echo "}"
+    } | sudo tee "$LOGROTATE_CONF" > /dev/null
 
     echo "Configuration du pare-feu terminée avec succès"
 
@@ -1071,14 +1117,14 @@ Activate_services() {
     echo "=== ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
-    sudo systemctl enable sddm
-    sudo systemctl enable NetworkManager.service
-    sudo systemctl enable bluetooth.service
-    sudo systemctl enable mpd.service 
+    sudo systemctl enable --now sddm
+    sudo systemctl enable --now NetworkManager.service
+    sudo systemctl enable --now bluetooth.service
+    sudo systemctl enable --now mpd.service 
 
-    systemctl --user enable pipewire 
-    systemctl --user enable pipewire-pulse
-    systemctl --user enable wireplumber
+    systemctl --user enable --now pipewire 
+    systemctl --user enable --now pipewire-pulse
+    systemctl --user enable --now wireplumber
 
     sudo systemctl enable --now cups
 
@@ -1086,12 +1132,11 @@ Activate_services() {
     sudo systemctl enable --now libvirtd
 
     sudo usermod -aG docker $(id -u -n)
-    sudo systemctl enable docker.service
-
-    # sudo systemctl daemon-reload      
+    sudo systemctl enable --now docker.service
+    
     sudo systemctl enable --now nftables.service
-    # sudo systemctl enable --now cronie.service
-    # sudo systemctl enable --now nftables-journald.service
+    sudo systemctl enable --now logrotate.service
+    sudo systemctl enable --now rsyslog.service
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
