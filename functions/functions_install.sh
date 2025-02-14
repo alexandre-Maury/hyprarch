@@ -913,21 +913,31 @@ install_firewall() {
 
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
-    NFTABLES_LOG="/var/log/nftables.log"
-    JOURNALD_CONF="/etc/systemd/journald.conf"
-    RSYSLOG_CONF="/etc/rsyslog.conf"
-    LOGROTATE_CONF="/etc/logrotate.d/rsyslog"
+    NFTABLES_LOG_DIR="/var/log/nftables"
+    NFTABLES_LOG="$NFTABLES_LOG_DIR/input.log"
 
     # Fonction pour gérer les erreurs
     handle_error() {
-        echo "Erreur : $1" >&2
+        echo "❌ Erreur : $1" >&2
         exit 1
     }
 
-    # Configuration des règles nftables
+    # Fonction pour exécuter une commande avec sudo et vérifier son succès
+    check_command() {
+        sudo "$@"
+        if [ $? -ne 0 ]; then
+            handle_error "Échec de la commande : sudo $*"
+        fi
+    }
+
+    # Vérification de la présence de nftables
+    command -v nft >/dev/null 2>&1 || handle_error "Le paquet nftables n'est pas installé. Installez-le avec : sudo apt install nftables"
+
+    # Création d'un fichier temporaire pour les règles
     temp_rules=$(mktemp)
     trap 'rm -f "$temp_rules"' EXIT
 
+    # Configuration des règles nftables
     {
         echo "#!/usr/sbin/nft -f"
         echo "flush ruleset"
@@ -943,113 +953,103 @@ install_firewall() {
         echo "add chain inet firewall output { type filter hook output priority 0 ; policy accept ; }"  
         echo "add chain inet firewall forward { type filter hook forward priority 0 ; policy drop ; }"
 
-        # Chaînes spécialisées
-        echo "add chain inet firewall tcp_attacks"
-        echo "add chain inet firewall dos_protection"
-        echo "add chain inet firewall port_scan"
-        echo "add chain inet firewall fragment_protection"
-        echo "add chain inet firewall stealth_scan"
-        echo "add chain inet firewall amplification_protection"
-        echo "add chain inet firewall sensitive_services"
-        echo "add chain inet firewall anti_spoofing"
-        echo "add chain inet firewall icmp_protection"
-
         # Règles de base 
         echo "add rule inet firewall input ct state established,related accept"
         echo "add rule inet firewall input ct state invalid drop"
         echo "add rule inet firewall input iif lo accept"
 
-        # Configuration de la chaîne tcp_attacks
-        echo "add rule inet firewall input ip protocol tcp jump tcp_attacks"
-        echo "add rule inet firewall tcp_attacks tcp flags & (fin|syn) == fin|syn drop"
-        echo "add rule inet firewall tcp_attacks tcp flags & (syn|rst) == syn|rst drop"
-        echo "add rule inet firewall tcp_attacks tcp flags & (fin|syn|rst|psh|ack|urg) < fin drop"
-        echo "add rule inet firewall tcp_attacks tcp flags & fin != 0 ct state new drop"
+        # Protection TCP avancée
+        echo "add chain inet firewall tcp_protection"
+        echo "add rule inet firewall input ip protocol tcp jump tcp_protection"
+        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn) == fin|syn log prefix \"[NFT-DROP] \" counter drop"
+        echo "add rule inet firewall tcp_protection tcp flags & (syn|rst) == syn|rst log prefix \"[NFT-DROP] \" counter drop"
 
-        # Configuration de la chaîne dos_protection avec rate limiting
+        # Protection contre les DoS avec limite de connexion
+        echo "add chain inet firewall dos_protection"
         echo "add rule inet firewall input jump dos_protection"
-        echo "add rule inet firewall dos_protection tcp flags syn tcp dport {80, 443} limit rate 100/minute drop"  
-        echo "add rule inet firewall dos_protection tcp flags syn limit rate 60/second burst 200 packets drop"  
-        echo "add rule inet firewall dos_protection udp dport 0-65535 limit rate 250/second burst 300 packets drop"   
+        echo "add rule inet firewall dos_protection tcp flags syn limit rate 60/second burst 200 packets log prefix \"[NFT-DROP] \" counter drop"  
+        echo "add rule inet firewall dos_protection udp dport 0-65535 limit rate 250/second burst 300 packets log prefix \"[NFT-DROP] \" counter drop"   
 
-        # Configuration de la chaîne port_scan
+        # Protection contre le scan de ports
+        echo "add chain inet firewall port_scan"
         echo "add rule inet firewall input jump port_scan"
-        echo "add rule inet firewall port_scan tcp flags syn tcp dport 0-1023 limit rate 50/minute drop"
-        echo "add rule inet firewall port_scan tcp flags syn ct state new limit rate 30/second drop"
+        echo "add rule inet firewall port_scan tcp flags syn tcp dport 0-1023 limit rate 50/minute log prefix \"[NFT-DROP] \" counter drop"
 
-        # Configuration de la chaîne fragment_protection
+        # Protection contre les paquets fragmentés
+        echo "add chain inet firewall fragment_protection"
         echo "add rule inet firewall input ip frag-off != 0 jump fragment_protection"
-        echo "add rule inet firewall fragment_protection limit rate 200/second drop"  
+        echo "add rule inet firewall fragment_protection limit rate 200/second log prefix \"[NFT-DROP] \" counter drop"  
 
-        # Configuration de la chaîne stealth_scan
+        # Protection contre les scans furtifs
+        echo "add chain inet firewall stealth_scan"
         echo "add rule inet firewall input tcp flags != 0 jump stealth_scan"
-        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == 0 drop"
-        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|psh|ack|urg) == fin|psh|urg drop"
-        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == fin drop"
-        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == fin|syn drop"
+        echo "add rule inet firewall stealth_scan tcp flags & (fin|syn|rst|ack) == 0 log prefix \"[NFT-DROP] \" counter drop"
 
-        # Configuration de la chaîne amplification_protection
+        # Protection contre les attaques par amplification
+        echo "add chain inet firewall amplification_protection"
         echo "add rule inet firewall input udp dport != 0 jump amplification_protection"
-        echo "add rule inet firewall amplification_protection udp dport 53 ct state new limit rate 100/second drop"
-        echo "add rule inet firewall amplification_protection udp dport { 123, 1900, 161, 11211, 389, 19, 17 } drop"
+        echo "add rule inet firewall amplification_protection udp dport 53 ct state new limit rate 100/second log prefix \"[NFT-DROP] \" counter drop"
 
-        # Configuration de la chaîne sensitive_services
+        # Services sensibles
+        echo "add chain inet firewall sensitive_services"
         echo "add rule inet firewall input jump sensitive_services"
-        # echo "add rule inet firewall sensitive_services tcp dport 22 ct state new limit rate 10/minute accept"
-        echo "add rule inet firewall sensitive_services tcp dport { 22, 3306, 5432, 8080, 8443, 10000, 9090, 9100, 9200 } drop"
+        echo "add rule inet firewall sensitive_services tcp dport { 22, 3306, 5432, 8080, 8443, 10000, 9090, 9100, 9200 } log prefix \"[NFT-DROP] \" counter drop"
         
-        # Configuration de la chaîne anti_spoofing
+        # Anti-spoofing
+        echo "add chain inet firewall anti_spoofing"
         echo "add rule inet firewall input jump anti_spoofing"
-        echo "add rule inet firewall anti_spoofing ip saddr @blacklist counter drop"
+        echo "add rule inet firewall anti_spoofing ip saddr @blacklist counter log prefix \"[NFT-DROP] \" counter drop"
 
-        # Règles pour ajouter à la blacklist
-        echo "add rule inet firewall anti_spoofing ip saddr 127.0.0.0/8 iif != "lo" add @blacklist { ip saddr }"
+        # Blacklist automatique
+        echo "add rule inet firewall anti_spoofing ip saddr 127.0.0.0/8 iif != \"lo\" add @blacklist { ip saddr }"
         echo "add rule inet firewall anti_spoofing ip saddr { 0.0.0.0/8, 169.254.0.0/16, 224.0.0.0/4 } add @blacklist { ip saddr }"
 
-        # Configuration de la chaîne icmp_protection
+        # Protection ICMP
+        echo "add chain inet firewall icmp_protection"
         echo "add rule inet firewall input ip protocol icmp jump icmp_protection"  
-        echo "add rule inet firewall icmp_protection icmp type echo-request limit rate 30/second drop"  
-        echo "add rule inet firewall icmp_protection icmp type { redirect, router-advertisement } drop"
-
-        # Journalisation finale
-        echo "add rule inet firewall input log prefix \"nft-drop: \" level debug flags all"
-        echo "add rule inet firewall input counter drop"
+        echo "add rule inet firewall icmp_protection icmp type echo-request limit rate 30/second log prefix \"[NFT-DROP] \" counter drop"  
 
     } > "$temp_rules"
 
-    # Application des règles avec sudo
-    echo "Application des règles nftables..."
-    if ! sudo nft -f "$temp_rules"; then
-        handle_error "Application des règles nftables échouée"
-    fi
+    # Application des règles nftables
+    echo "🔧 Application des règles nftables..."
+    check_command nft -f "$temp_rules"
 
-    # Vérification de l'application des règles
-    if ! sudo nft list ruleset | grep -q "nft-drop:"; then
-        handle_error "Les règles n'ont pas été appliquées correctement"
+    # Vérification des règles
+    echo "🔍 Vérification des règles nftables..."
+    if ! sudo nft list ruleset | grep -q "\[NFT-DROP\]"; then
+        handle_error "Les règles nftables ne semblent pas appliquées correctement."
     fi
+    echo "✅ Règles nftables appliquées avec succès."
 
     # Sauvegarde de la configuration
+    echo "💾 Sauvegarde de la configuration..."
     sudo nft list ruleset | sudo tee "$NFTABLES_CONF" > /dev/null
 
-
+    # Vérification et ajout du groupe nftables
     if ! getent group nftables >/dev/null; then
-        sudo groupadd nftables
+        echo "🔧 Création du groupe nftables..."
+        check_command groupadd nftables
     fi
 
-    sudo usermod -aG nftables $USER
+    CURRENT_USER=$(logname 2>/dev/null || echo "$SUDO_USER")
+    if [ -n "$CURRENT_USER" ]; then
+        check_command usermod -aG nftables "$CURRENT_USER"
+    fi
 
-    sudo mkdir -p /var/spool/rsyslog
-    sudo chown root:nftables /var/spool/rsyslog
-    sudo chmod 755 /var/spool/rsyslog
+    # Création des répertoires de logs
+    echo "📂 Configuration des logs..."
+    check_command mkdir -p /var/spool/rsyslog
+    check_command chown root:nftables /var/spool/rsyslog
+    check_command chmod 755 /var/spool/rsyslog
 
-    sudo mkdir -p /var/log/nftables
-
-    sudo touch /var/log/nftables/input.log
-    sudo chown root:nftables /var/log/nftables/input.log
-    sudo chmod 640 /var/log/nftables/input.log
+    check_command mkdir -p "$NFTABLES_LOG_DIR"
+    check_command touch "$NFTABLES_LOG"
+    check_command chown root:nftables "$NFTABLES_LOG"
+    check_command chmod 640 "$NFTABLES_LOG"
 
     # Configuration de journald
-    echo "Configuration de journald..."
+    echo "🛠 Configuration de journald..."
     {
         echo "[Journal]"
         echo "SystemMaxUse=200M"
@@ -1058,53 +1058,57 @@ install_firewall() {
         echo "Storage=persistent"
         echo "Compress=yes"
         echo "ForwardToSyslog=yes"
-    } | sudo tee "$JOURNALD_CONF" > /dev/null
+    } | sudo tee "/etc/systemd/journald.conf" > /dev/null
+    check_command systemctl restart systemd-journald.service
 
-    # Configuration de rsyslog.conf
-    echo "Configuration de rsyslog..."
+    # Configuration de rsyslog
+    echo "🛠 Configuration de rsyslog..."
     {
         echo "module(load=\"imuxsock\")"
         echo "module(load=\"imklog\")"
 
-        echo "$FileOwner root"
-        echo "$FileGroup nftables"
-        echo "$FileCreateMode 0640"
-        echo "$DirCreateMode 0755"
-        echo "$Umask 0022"
-        echo "$WorkDirectory /var/spool/rsyslog"
+        echo "\$FileOwner root"
+        echo "\$FileGroup nftables"
+        echo "\$FileCreateMode 0640"
+        echo "\$DirCreateMode 0755"
+        echo "\$Umask 0022"
+        echo "\$WorkDirectory /var/spool/rsyslog"
 
-        echo ":msg, contains, \"nft-drop:\" -/var/log/nftables/input.log"
+        echo ":msg, contains, \"[NFT-DROP]\" -$NFTABLES_LOG"
         echo "& stop"
+    } | sudo tee "/etc/rsyslog.conf" > /dev/null
 
-        echo "*.*;auth,authpriv.none          -/var/log/syslog"
-        echo "auth,authpriv.*                 /var/log/auth.log"
-        echo "cron.*                          -/var/log/cron.log"
-        echo "kern.*                          -/var/log/kern.log"
-        echo "mail.*                          -/var/log/mail.log"
-        echo "user.*                          -/var/log/user.log"
-        echo "*.emerg                         :omusrmsg:*"
-        
-    } | sudo tee "$RSYSLOG_CONF" > /dev/null
-
-    # Configurer logrotate
-    echo "Configuration de logrotate..."
+    # Configuration de logrotate
+    echo "🛠 Configuration de logrotate..."
     {
-        echo "/var/log/nftables/*.log {"
+        echo "$NFTABLES_LOG_DIR/*.log {"
         echo "    daily"
         echo "    rotate 365"
         echo "    size 100M"
+        echo "    maxsize 200M"
         echo "    missingok"
         echo "    notifempty"
         echo "    compress"
         echo "    delaycompress"
         echo "    sharedscripts"
         echo "    postrotate"
-        echo "        /usr/bin/systemctl kill -s HUP rsyslog.service >/dev/null 2>&1 || true"
+        echo "        /usr/bin/systemctl restart rsyslog.service >/dev/null 2>&1 || true"
         echo "    endscript"
         echo "}"
-    } | sudo tee "$LOGROTATE_CONF" > /dev/null
+    } | sudo tee "/etc/logrotate.d/rsyslog" > /dev/null
 
-    echo "Configuration du pare-feu terminée avec succès"
+    echo "✅ Configuration du pare-feu terminée avec succès."
+
+    # Redémarrage des services
+    echo "🔄 Redémarrage des services..."
+    check_command systemctl restart nftables.service
+    check_command systemctl restart logrotate.service
+    check_command systemctl restart rsyslog.service
+
+    echo "🚀 Pare-feu et logs configurés avec succès !"
+
+
+    # sudo journalctl -f | grep "\[NFT-DROP\]"
 
 }
 
