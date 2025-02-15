@@ -933,8 +933,20 @@ install_firewall() {
         fi
     }
 
-    # Vérification de la présence de nftables
-    command -v nft >/dev/null 2>&1 || handle_error "Le paquet nftables n'est pas installé. Installez-le avec : sudo pacman -S nftables"
+    # Fonction pour vérifier la présence d'un paquet
+    check_package() {
+        local package_name=$1
+        local install_command=$2
+
+        if ! command -v "$package_name" >/dev/null 2>&1; then
+            handle_error "Le paquet $package_name n'est pas installé. Installez-le avec : $install_command"
+        fi
+    }
+
+    # Vérification de la présence des paquets nécéssaire au bon fonctionnement
+    check_package "nft" "sudo pacman -S nftables"
+    check_package "rsyslogd" "sudo pacman -S rsyslog"
+    check_package "logrotate" "sudo pacman -S logrotate"
 
     check_command sh -c '> /etc/nftables.conf'
 
