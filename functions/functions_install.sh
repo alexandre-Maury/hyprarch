@@ -913,7 +913,7 @@ install_cron() {
 ## install_firewall - Activation du Firewall                                              
 ##############################################################################
 install_firewall() {
-
+    
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
     NFTABLES_LOG_DIR="/var/log/nftables"
@@ -934,7 +934,9 @@ install_firewall() {
     }
 
     # Vérification de la présence de nftables
-    command -v nft >/dev/null 2>&1 || handle_error "Le paquet nftables n'est pas installé. Installez-le avec : sudo apt install nftables"
+    command -v nft >/dev/null 2>&1 || handle_error "Le paquet nftables n'est pas installé. Installez-le avec : sudo pacman -S nftables"
+
+    check_command sh -c '> /etc/nftables.conf'
 
     # Création d'un fichier temporaire pour les règles
     temp_rules=$(mktemp)
@@ -1043,25 +1045,18 @@ install_firewall() {
 
     } > "$temp_rules"
 
-
     # Application des règles nftables
-    echo "🔧 Application des règles nftables..."
+    echo "Configuration des règles nftables..."
     check_command nft -f "$temp_rules"
-
-    # Vérification des règles
-    echo "🔍 Vérification des règles nftables..."
-    if ! sudo nft list ruleset | grep -q "\[NFT-DROP\]"; then
-        handle_error "Les règles nftables ne semblent pas appliquées correctement."
-    fi
-    echo "✅ Règles nftables appliquées avec succès."
+    echo "Règles nftables appliquées avec succès."
 
     # Sauvegarde de la configuration
-    echo "💾 Sauvegarde de la configuration..."
+    echo "Sauvegarde de la configuration..."
     sudo nft list ruleset | sudo tee "$NFTABLES_CONF" > /dev/null
 
     # Vérification et ajout du groupe nftables
     if ! getent group nftables >/dev/null; then
-        echo "🔧 Création du groupe nftables..."
+        echo "Création du groupe nftables..."
         check_command groupadd nftables
     fi
 
@@ -1071,7 +1066,7 @@ install_firewall() {
     fi
 
     # Création des répertoires de logs
-    echo "📂 Configuration des logs..."
+    echo "Configuration des logs..."
     check_command mkdir -p /var/spool/rsyslog
     check_command chown root:nftables /var/spool/rsyslog
     check_command chmod 755 /var/spool/rsyslog
@@ -1092,7 +1087,6 @@ install_firewall() {
         echo "Compress=yes"
         echo "ForwardToSyslog=yes"
     } | sudo tee "/etc/systemd/journald.conf" > /dev/null
-    check_command systemctl restart systemd-journald.service
 
     # Configuration de rsyslog
     echo "🛠 Configuration de rsyslog..."
@@ -1109,6 +1103,7 @@ install_firewall() {
 
         echo ":msg, contains, \"[NFT-DROP]\" -$NFTABLES_LOG"
         echo "& stop"
+
     } | sudo tee "/etc/rsyslog.conf" > /dev/null
 
     # Configuration de logrotate
@@ -1131,15 +1126,6 @@ install_firewall() {
     } | sudo tee "/etc/logrotate.d/rsyslog" > /dev/null
 
     echo "✅ Configuration du pare-feu terminée avec succès."
-
-    # Redémarrage des services
-    echo "🔄 Redémarrage des services..."
-    check_command systemctl restart nftables.service
-    check_command systemctl restart logrotate.service
-    check_command systemctl restart rsyslog.service
-
-    echo "🚀 Pare-feu et logs configurés avec succès !"
-
 
     # sudo journalctl -f | grep "\[NFT-DROP\]"
 
@@ -1171,6 +1157,7 @@ Activate_services() {
     sudo usermod -aG docker $(id -u -n)
     sudo systemctl enable --now docker.service
     
+    sudo systemctl enable --now systemd-journald.service
     sudo systemctl enable --now nftables.service
     sudo systemctl enable --now logrotate.service
     sudo systemctl enable --now rsyslog.service
