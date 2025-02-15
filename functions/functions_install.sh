@@ -992,68 +992,68 @@ install_firewall() {
         echo "add rule inet firewall input ip saddr @whitelist accept"
 
         # Anti-spoofing
-        echo "add rule inet firewall input ip saddr \$PRIVATE_NETS iif != \"lo\" log prefix \"[NFT-DROP] PRIVATE-NET-BLOCKED\" counter drop"
-        echo "add rule inet firewall input ip saddr \$BOGON_NETS log prefix \"[NFT-DROP] BOGON-NET-BLOCKED\" counter drop"
+        echo "add rule inet firewall input ip saddr \$PRIVATE_NETS iif != \"lo\" log prefix \"[NFT-DROP] PRIVATE-NET-BLOCKED \" counter drop"
+        echo "add rule inet firewall input ip saddr \$BOGON_NETS log prefix \"[NFT-DROP] BOGON-NET-BLOCKED \" counter drop"
 
         # Protection contre le scan de ports
         echo "add chain inet firewall port_scan"
         echo "add rule inet firewall input jump port_scan"
-        echo "add rule inet firewall port_scan tcp flags syn limit rate 30/minute add @port_scanners { ip saddr } log prefix \"[NFT-DROP] PORT-SCAN\" counter drop"
-        echo "add rule inet firewall port_scan ip saddr @port_scanners log prefix \"[NFT-DROP] PORT-SCANNER-BLOCKED\" counter drop"
+        echo "add rule inet firewall port_scan tcp flags syn limit rate 30/minute add @port_scanners { ip saddr } log prefix \"[NFT-DROP] PORT-SCAN \" counter drop"
+        echo "add rule inet firewall port_scan ip saddr @port_scanners log prefix \"[NFT-DROP] PORT-SCANNER-BLOCKED \" counter drop"
 
         # Protection SSH (bruteforce)
         echo "add chain inet firewall ssh_protection"
         echo "add rule inet firewall input tcp dport 22 jump ssh_protection"
-        echo "add rule inet firewall ssh_protection ct state new limit rate 3/minute burst 5 packets log prefix \"[NFT-DROP] SSH-RATE-LIMIT\" accept"
-        echo "add rule inet firewall ssh_protection ct state new log prefix \"[NFT-DROP] SSH-RATE-LIMIT-EXCEEDED\" counter drop"
-        echo "add rule inet firewall ssh_protection add @ssh_bruteforce { ip saddr } log prefix \"[NFT-DROP] SSH-BRUTEFORCE\" counter drop"
-        echo "add rule inet firewall input ip saddr @ssh_bruteforce log prefix \"[NFT-DROP] SSH-BRUTEFORCE-BLOCKED\" counter drop"
+        echo "add rule inet firewall ssh_protection ct state new limit rate 3/minute burst 5 packets log prefix \"[NFT-DROP] SSH-RATE-LIMIT \" accept"
+        echo "add rule inet firewall ssh_protection ct state new log prefix \"[NFT-DROP] SSH-RATE-LIMIT-EXCEEDED \" counter drop"
+        echo "add rule inet firewall ssh_protection add @ssh_bruteforce { ip saddr } log prefix \"[NFT-DROP] SSH-BRUTEFORCE \" counter drop"
+        echo "add rule inet firewall input ip saddr @ssh_bruteforce log prefix \"[NFT-DROP] SSH-BRUTEFORCE-BLOCKED \" counter drop"
 
         # Protection TCP (SYN flood, XMAS scan, etc.)
         echo "add chain inet firewall tcp_protection"
         echo "add rule inet firewall input ip protocol tcp jump tcp_protection"
-        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn) == fin|syn log prefix \"[NFT-DROP] TCP-FINSYNATTACK\" counter drop"
-        echo "add rule inet firewall tcp_protection tcp flags & (syn|rst) == syn|rst log prefix \"[NFT-DROP] TCP-SYNRSTATTACK\" counter drop"
-        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn|rst|psh|ack|urg) == 0 log prefix \"[NFT-DROP] NULL-SCAN\" counter drop"
-        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg log prefix \"[NFT-DROP] XMAS-SCAN\" counter drop"
+        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn) == fin|syn log prefix \"[NFT-DROP] TCP-FINSYNATTACK \" counter drop"
+        echo "add rule inet firewall tcp_protection tcp flags & (syn|rst) == syn|rst log prefix \"[NFT-DROP] TCP-SYNRSTATTACK \" counter drop"
+        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn|rst|psh|ack|urg) == 0 log prefix \"[NFT-DROP] NULL-SCAN \" counter drop"
+        echo "add rule inet firewall tcp_protection tcp flags & (fin|syn|rst|psh|ack|urg) == fin|syn|rst|psh|ack|urg log prefix \"[NFT-DROP] XMAS-SCAN \" counter drop"
 
         # Protection SYN flood
         echo "add chain inet firewall syn_flood_protection"
         echo "add rule inet firewall input jump syn_flood_protection"
-        echo "add rule inet firewall syn_flood_protection tcp flags syn limit rate 60/second burst 200 packets add @syn_flood { ip saddr } log prefix \"[NFT-DROP] SYN-FLOOD-DETECTED\" counter drop"
-        echo "add rule inet firewall syn_flood_protection ip saddr @syn_flood log prefix \"[NFT-DROP] SYN-FLOOD-BLOCKED\" counter drop"
+        echo "add rule inet firewall syn_flood_protection tcp flags syn limit rate 60/second burst 200 packets add @syn_flood { ip saddr } log prefix \"[NFT-DROP] SYN-FLOOD-DETECTED \" counter drop"
+        echo "add rule inet firewall syn_flood_protection ip saddr @syn_flood log prefix \"[NFT-DROP] SYN-FLOOD-BLOCKED \" counter drop"
 
         # Protection HTTP flood
         echo "add chain inet firewall http_protection"
         echo "add rule inet firewall input tcp dport \$HTTP_PORTS jump http_protection"
-        echo "add rule inet firewall http_protection ct state new limit rate 200/minute burst 100 packets add @http_flood { ip saddr } log prefix \"[NFT-DROP] HTTP-FLOOD\" counter drop"
-        echo "add rule inet firewall http_protection ip saddr @http_flood log prefix \"[NFT-DROP] HTTP-FLOOD-BLOCKED\" counter drop"
+        echo "add rule inet firewall http_protection ct state new limit rate 200/minute burst 100 packets add @http_flood { ip saddr } log prefix \"[NFT-DROP] HTTP-FLOOD \" counter drop"
+        echo "add rule inet firewall http_protection ip saddr @http_flood log prefix \"[NFT-DROP] HTTP-FLOOD-BLOCKED \" counter drop"
 
         # Protection DNS amplification
         echo "add chain inet firewall dns_protection"
         echo "add rule inet firewall input udp dport \$DNS_PORTS jump dns_protection"
-        echo "add rule inet firewall dns_protection ct state new limit rate 100/second log prefix \"[NFT-DROP] DNS-AMPLIFICATION\" counter drop"
+        echo "add rule inet firewall dns_protection ct state new limit rate 100/second log prefix \"[NFT-DROP] DNS-AMPLIFICATION \" counter drop"
 
         # Protection ICMP
         echo "add chain inet firewall icmp_protection"
         echo "add rule inet firewall input ip protocol icmp jump icmp_protection"
-        echo "add rule inet firewall icmp_protection icmp type \$ICMP_TYPES limit rate 30/second log prefix \"[NFT-DROP] ICMP-ACCEPTED\" accept"
-        echo "add rule inet firewall icmp_protection log prefix \"[NFT-DROP] ICMP\" counter drop"
+        echo "add rule inet firewall icmp_protection icmp type \$ICMP_TYPES limit rate 30/second log prefix \"[NFT-DROP] ICMP-ACCEPTED \" accept"
+        echo "add rule inet firewall icmp_protection log prefix \"[NFT-DROP] ICMP \" counter drop"
 
         # Protection IPv6
         echo "add chain inet firewall ipv6_protection"
         echo "add rule inet firewall input ip6 nexthdr icmpv6 jump ipv6_protection"
-        echo "add rule inet firewall ipv6_protection icmpv6 type \$ICMPv6_TYPES log prefix \"[NFT-DROP] IPV6-ACCEPTED\" accept"
+        echo "add rule inet firewall ipv6_protection icmpv6 type \$ICMPv6_TYPES log prefix \"[NFT-DROP] IPV6-ACCEPTED \" accept"
         echo "add rule inet firewall ipv6_protection log prefix \"[NFT-DROP] IPV6\" counter drop"
 
         # Protection des ports sensibles
         echo "add chain inet firewall sensitive_ports"
         echo "add rule inet firewall input tcp dport \$SENSITIVE_PORTS jump sensitive_ports"
-        echo "add rule inet firewall sensitive_ports ip saddr @whitelist log prefix \"[NFT-DROP] SENSITIVE-PORT-ACCEPTED\" accept"
-        echo "add rule inet firewall sensitive_ports log prefix \"[NFT-DROP] SENSITIVE-PORT\" counter drop"
+        echo "add rule inet firewall sensitive_ports ip saddr @whitelist log prefix \"[NFT-DROP] SENSITIVE-PORT-ACCEPTED \" accept"
+        echo "add rule inet firewall sensitive_ports log prefix \"[NFT-DROP] SENSITIVE-PORT \" counter drop"
 
         # Logging et drop final
-        echo "add rule inet firewall input log prefix \"[NFT-DROP] FINAL-DROP\" counter drop"
+        echo "add rule inet firewall input log prefix \"[NFT-DROP] FINAL-DROP \" counter drop"
 
     } > "$temp_rules"
 
@@ -1116,7 +1116,7 @@ install_firewall() {
         echo "\$Umask 0022"
         echo "\$WorkDirectory /var/spool/rsyslog"
 
-        echo ":msg, contains, \"[NFT-DROP] SSH\" -$NFTABLES_LOG"
+        echo ":msg, contains, \"NFT-DROP\" -$NFTABLES_LOG"
         echo "& stop"
 
     } | sudo tee "/etc/rsyslog.conf" > /dev/null
@@ -1144,6 +1144,8 @@ install_firewall() {
     echo "Configuration du pare-feu terminée avec succès."
 
     # sudo journalctl -f | grep "\[NFT-DROP\]"
+    # sudo sh -c '> /var/log/nftables/nftables.log'
+    # tail -f /var/log/nftables/nftables.log
 
 }
 
