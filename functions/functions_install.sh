@@ -917,7 +917,7 @@ install_firewall() {
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
     NFTABLES_LOG_DIR="/var/log/nftables"
-    NFTABLES_LOG="$NFTABLES_LOG_DIR/input.log"
+    NFTABLES_LOG="$NFTABLES_LOG_DIR/nftables.log"
 
     # Fonction pour gérer les erreurs
     handle_error() {
@@ -1065,19 +1065,20 @@ install_firewall() {
         check_command usermod -aG nftables "$CURRENT_USER"
     fi
 
-    # Création des répertoires de logs
     echo "Configuration des logs..."
     check_command mkdir -p /var/spool/rsyslog
     check_command chown root:nftables /var/spool/rsyslog
     check_command chmod 755 /var/spool/rsyslog
 
+    # Création du répertoires des logs
     check_command mkdir -p "$NFTABLES_LOG_DIR"
+
     check_command touch "$NFTABLES_LOG"
     check_command chown root:nftables "$NFTABLES_LOG"
     check_command chmod 640 "$NFTABLES_LOG"
 
     # Configuration de journald
-    echo "🛠 Configuration de journald..."
+    echo "Configuration de journald..."
     {
         echo "[Journal]"
         echo "SystemMaxUse=200M"
@@ -1088,8 +1089,10 @@ install_firewall() {
         echo "ForwardToSyslog=yes"
     } | sudo tee "/etc/systemd/journald.conf" > /dev/null
 
+    check_command systemctl restart systemd-journald.service
+
     # Configuration de rsyslog
-    echo "🛠 Configuration de rsyslog..."
+    echo "Configuration de rsyslog..."
     {
         echo "module(load=\"imuxsock\")"
         echo "module(load=\"imklog\")"
@@ -1101,15 +1104,15 @@ install_firewall() {
         echo "\$Umask 0022"
         echo "\$WorkDirectory /var/spool/rsyslog"
 
-        echo ":msg, contains, \"[NFT-DROP]\" -$NFTABLES_LOG"
+        echo ":msg, contains, \"[NFT-DROP] SSH\" -$NFTABLES_LOG"
         echo "& stop"
 
     } | sudo tee "/etc/rsyslog.conf" > /dev/null
 
     # Configuration de logrotate
-    echo "🛠 Configuration de logrotate..."
+    echo "Configuration de logrotate..."
     {
-        echo "$NFTABLES_LOG_DIR/*.log {"
+        echo "$NFTABLES_LOG {"
         echo "    daily"
         echo "    rotate 365"
         echo "    size 100M"
@@ -1123,9 +1126,10 @@ install_firewall() {
         echo "        /usr/bin/systemctl restart rsyslog.service >/dev/null 2>&1 || true"
         echo "    endscript"
         echo "}"
+
     } | sudo tee "/etc/logrotate.d/rsyslog" > /dev/null
 
-    echo "✅ Configuration du pare-feu terminée avec succès."
+    echo "Configuration du pare-feu terminée avec succès."
 
     # sudo journalctl -f | grep "\[NFT-DROP\]"
 
