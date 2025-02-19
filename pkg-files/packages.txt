@@ -23,6 +23,7 @@ virt-manager
 bridge-utils
 dnsmasq
 vde2
+keepass
 # 2. Ces paquets concernent des outils d'administration système et de surveillance :
 ddcutil
 rsync
