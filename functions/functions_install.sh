@@ -916,8 +916,8 @@ install_firewall() {
     
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
-    NFTABLES_LOG_DIR="/var/log/nftables"
-    NFTABLES_LOG="$NFTABLES_LOG_DIR/nftables.log"
+    # NFTABLES_LOG_DIR="/var/log/nftables"
+    # NFTABLES_LOG="$NFTABLES_LOG_DIR/nftables.log"
 
     # Fonction pour gérer les erreurs
     handle_error() {
@@ -942,11 +942,6 @@ install_firewall() {
             handle_error "Le paquet $package_name n'est pas installé. Installez-le avec : $install_command"
         fi
     }
-
-    # Vérification de la présence des paquets nécéssaire au bon fonctionnement
-    check_package "nft" "sudo pacman -S nftables"
-    check_package "rsyslogd" "sudo pacman -S rsyslog"
-    check_package "logrotate" "sudo pacman -S logrotate"
 
     check_command sh -c '> /etc/nftables.conf'
 
