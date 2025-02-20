@@ -1079,7 +1079,7 @@ install_firewall() {
 
     echo "Configuration de journald..."
     {
-        
+
         echo "[Journal]"
         echo "SystemMaxUse=500M"
         echo "SystemMaxFileSize=50M"
@@ -1175,8 +1175,8 @@ Activate_services() {
     
     sudo systemctl enable --now systemd-journald.service
     sudo systemctl enable --now nftables.service
-    sudo systemctl enable --now logrotate.service
-    sudo systemctl enable --now rsyslog.service
+    # sudo systemctl enable --now logrotate.service
+    # sudo systemctl enable --now rsyslog.service
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
