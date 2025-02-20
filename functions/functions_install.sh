@@ -954,13 +954,11 @@ install_firewall() {
         echo "#!/usr/sbin/nft -f"
         echo "flush ruleset"
 
-        # Définir des variables pour les réseaux IPv4 à bloquer
         echo "define PRIVATE_NETS = { 10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16 }"
         echo "define BOGON_NETS = { 0.0.0.0/8, 127.0.0.0/8, 169.254.0.0/16, 224.0.0.0/4, 240.0.0.0/4 }"
-        # Définir des variables pour les réseaux IPv6 à bloquer
         echo "define PRIVATE_NETS6 = { fe80::/10, fc00::/7 }"
         echo "define BOGON_NETS6 = { ::/128, ::1/128, ff00::/8, 2001:db8::/32, 2001:10::/28, 2001:20::/28 }"
-
+        echo "define WHITELIST_RESEAU = { docker0, lo }"
         echo "define SENSITIVE_PORTS = { 22, 3306, 5432, 8080, 8443, 10000, 9090, 9100, 9200, 6379, 27017, 28017, 4444, 4445 }"
         echo "define DNS_PORTS = { 53 }"
         echo "define HTTP_PORTS = { 80, 443 }"
@@ -1001,6 +999,12 @@ install_firewall() {
         echo "add rule inet firewall input ip saddr @whitelist accept"
         echo "add rule inet firewall input ip6 saddr @whitelist6 accept"
 
+        # Règles de base pour les connexions établies et invalides
+        echo "add rule inet firewall input ct state established,related accept"
+        echo "add rule inet firewall input ct state invalid drop"
+        # echo "add rule inet firewall input iif lo accept"
+        echo "add rule inet firewall input iif \$WHITELIST_RESEAU accept"
+
         # Bloquer les IP des ensembles dynamiques (IPv4)
         echo "add rule inet firewall input ip saddr @blacklist log prefix \"[NFT-DROP] IPV4-BLACKLIST-BLOCKED \" counter drop"
         echo "add rule inet firewall input ip saddr @port_scanners log prefix \"[NFT-DROP] IPV4-PORT-SCANNER-BLOCKED \" counter drop"
@@ -1016,11 +1020,6 @@ install_firewall() {
         echo "add rule inet firewall input ip6 saddr @syn_flood6 log prefix \"[NFT-DROP] IPV6-SYN-FLOOD-BLOCKED \" counter drop"
         echo "add rule inet firewall input ip6 saddr @http_flood6 log prefix \"[NFT-DROP] IPV6-HTTP-FLOOD-BLOCKED \" counter drop"
         echo "add rule inet firewall input ip6 saddr @bad_actors6 log prefix \"[NFT-DROP] IPV6-BAD-ACTOR-BLOCKED \" counter drop"
-
-        # Règles de base pour les connexions établies et invalides
-        echo "add rule inet firewall input ct state established,related accept"
-        echo "add rule inet firewall input ct state invalid drop"
-        echo "add rule inet firewall input iif lo accept"
 
         # Anti-spoofing : bloquer les adresses IP privées et Bogon (IPv4)
         echo "add rule inet firewall input ip saddr \$PRIVATE_NETS iif != \"lo\" log prefix \"[NFT-DROP] PRIVATE-NET-BLOCKED \" counter drop"
