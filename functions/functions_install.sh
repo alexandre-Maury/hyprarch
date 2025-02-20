@@ -1077,75 +1077,73 @@ install_firewall() {
         check_command usermod -aG nftables "$CURRENT_USER"
     fi
 
-    echo "Configuration des logs..."
-    check_command mkdir -p /var/spool/rsyslog
-    check_command chown root:nftables /var/spool/rsyslog
-    check_command chmod 755 /var/spool/rsyslog
-
-    # Création du répertoires des logs
-    check_command mkdir -p "$NFTABLES_LOG_DIR"
-
-    check_command touch "$NFTABLES_LOG"
-    check_command chown root:nftables "$NFTABLES_LOG"
-    check_command chmod 640 "$NFTABLES_LOG"
-
-    # Configuration de journald
     echo "Configuration de journald..."
     {
+        
         echo "[Journal]"
-        echo "SystemMaxUse=200M"
-        echo "SystemMaxFileSize=100M"
-        echo "SystemMaxFiles=5"
+        echo "SystemMaxUse=500M"
+        echo "SystemMaxFileSize=50M"
+        echo "SystemMaxFiles=10"
         echo "Storage=persistent"
         echo "Compress=yes"
-        echo "ForwardToSyslog=yes"
+        echo "ForwardToSyslog=no"
+        echo "RateLimitIntervalSec=30s"
+        echo "RateLimitBurst=1000"
+        echo "MaxRetentionSec=1month"
+
     } | sudo tee "/etc/systemd/journald.conf" > /dev/null
 
-    check_command systemctl restart systemd-journald.service
+    # echo "Configuration des logs..."
+    # check_command mkdir -p /var/spool/rsyslog
+    # check_command chown root:nftables /var/spool/rsyslog
+    # check_command chmod 755 /var/spool/rsyslog
+
+    # Création du répertoires des logs
+    # check_command mkdir -p "$NFTABLES_LOG_DIR"
+
+    # check_command touch "$NFTABLES_LOG"
+    # check_command chown root:nftables "$NFTABLES_LOG"
+    # check_command chmod 640 "$NFTABLES_LOG"
 
     # Configuration de rsyslog
-    echo "Configuration de rsyslog..."
-    {
-        echo "module(load=\"imuxsock\")"
-        echo "module(load=\"imklog\")"
+    # echo "Configuration de rsyslog..."
+    # {
+        # echo "module(load=\"imuxsock\")"
+        # echo "module(load=\"imklog\")"
 
-        echo "\$FileOwner root"
-        echo "\$FileGroup nftables"
-        echo "\$FileCreateMode 0640"
-        echo "\$DirCreateMode 0755"
-        echo "\$Umask 0022"
-        echo "\$WorkDirectory /var/spool/rsyslog"
+        # echo "\$FileOwner root"
+        # echo "\$FileGroup nftables"
+        # echo "\$FileCreateMode 0640"
+        # echo "\$DirCreateMode 0755"
+        # echo "\$Umask 0022"
+        # echo "\$WorkDirectory /var/spool/rsyslog"
 
-        echo ":msg, contains, \"NFT-DROP\" -$NFTABLES_LOG"
-        echo "& stop"
+        # echo ":msg, contains, \"NFT-DROP\" -$NFTABLES_LOG"
+        # echo "& stop"
 
-    } | sudo tee "/etc/rsyslog.conf" > /dev/null
+    # } | sudo tee "/etc/rsyslog.conf" > /dev/null
 
     # Configuration de logrotate
-    echo "Configuration de logrotate..."
-    {
-        echo "$NFTABLES_LOG {"
-        echo "    daily"
-        echo "    rotate 365"
-        echo "    size 100M"
-        echo "    maxsize 200M"
-        echo "    missingok"
-        echo "    notifempty"
-        echo "    compress"
-        echo "    delaycompress"
-        echo "    sharedscripts"
-        echo "    postrotate"
-        echo "        /usr/bin/systemctl restart rsyslog.service >/dev/null 2>&1 || true"
-        echo "    endscript"
-        echo "}"
+    # echo "Configuration de logrotate..."
+    # {
+        # echo "$NFTABLES_LOG {"
+        # echo "    daily"
+        # echo "    rotate 365"
+        # echo "    size 100M"
+        # echo "    maxsize 200M"
+        # echo "    missingok"
+        # echo "    notifempty"
+        # echo "    compress"
+        # echo "    delaycompress"
+        # echo "    sharedscripts"
+        # echo "    postrotate"
+        # echo "        /usr/bin/systemctl restart rsyslog.service >/dev/null 2>&1 || true"
+        # echo "    endscript"
+        # echo "}"
 
-    } | sudo tee "/etc/logrotate.d/rsyslog" > /dev/null
+    # } | sudo tee "/etc/logrotate.d/rsyslog" > /dev/null
 
     echo "Configuration du pare-feu terminée avec succès."
-
-    # sudo journalctl -f | grep "\[NFT-DROP\]"
-    # sudo sh -c '> /var/log/nftables/nftables.log'
-    # tail -f /var/log/nftables/nftables.log
 
 }
 
