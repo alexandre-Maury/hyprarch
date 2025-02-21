@@ -1249,6 +1249,41 @@ install_firewall() {
 
 }
 
+install_clam() {
+    
+    # Créer un groupe pour ClamAV (s'il n'existe pas déjà)
+    if ! getent group clamav > /dev/null; then
+        sudo groupadd clamav
+    fi
+
+    # Ajouter l'utilisateur actuel au groupe clamav
+    sudo usermod -aG clamav $USER
+
+    # Créer les répertoires pour la quarantaine et les logs
+    sudo mkdir -p $HOME/.clamav/quarantine $HOME/.clamav/logs
+    sudo chown :clamav $HOME/.clamav/quarantine $HOME/.clamav/logs
+    sudo chmod 770 $HOME/.clamav/quarantine $HOME/.clamav/logs
+    sudo chmod 770 /var/lib/clamav
+
+    # Configurer les exclusions dans clamd.conf
+    echo "
+    #
+    # Exclure de l'analyse
+    #
+    ExcludePath ^/proc
+    ExcludePath ^/sys
+    ExcludePath ^/run
+    ExcludePath ^/dev
+    ExcludePath ^/var/lib/lxcfs/cgroup
+    ExcludePath ^$HOME/.clamav/quarantine" | sudo tee -a /etc/clamav/clamd.conf
+
+    # Ajouter les tâches cron
+    (crontab -l 2>/dev/null; echo "0 3 * * * /usr/bin/freshclam --quiet") | crontab -
+    (crontab -l 2>/dev/null; echo "20 21 * * * /usr/bin/clamdscan --fdpass --log=$HOME/.clamav/logs/scan-\$(date +'%d-%m-%Y-%T').log --move=$HOME/.clamav/quarantine /") | crontab -
+
+
+}
+
 ##############################################################################
 ## Activate_services - Activation des services                                              
 ##############################################################################
@@ -1279,6 +1314,9 @@ Activate_services() {
     sudo systemctl enable --now nftables.service
     # sudo systemctl enable --now logrotate.service
     # sudo systemctl enable --now rsyslog.service
+
+    sudo systemctl enable --now cronie
+    sudo systemctl enable --now clamav-daemon.service
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"

@@ -79,6 +79,7 @@ case "$1" in
     install_conf
     # install_cron
     install_firewall
+    install_clam
     Activate_services
     ;;
 
