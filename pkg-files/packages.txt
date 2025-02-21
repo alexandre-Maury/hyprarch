@@ -42,6 +42,8 @@ indicator-sensors
 brightnessctl
 xorg-xrandr
 zsh
+clamav
+clamtk
 nftables
 rsyslog
 logrotate
