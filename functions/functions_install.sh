@@ -1309,7 +1309,7 @@ Activate_services() {
     sudo systemctl enable --now libvirtd
 
     sudo usermod -aG docker $(id -u -n)
-    sudo systemctl enable --now docker.service
+    sudo systemctl enable docker.service
     
     sudo systemctl enable --now systemd-journald.service
     sudo systemctl enable --now nftables.service
