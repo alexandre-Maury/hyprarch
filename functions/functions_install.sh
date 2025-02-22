@@ -946,6 +946,8 @@ install_firewall() {
     check_command sh -c '> /etc/nftables.conf'
 
     # Création d'un fichier temporaire pour les règles
+    #docker0, 
+    
     temp_rules=$(mktemp)
     trap 'rm -f "$temp_rules"' EXIT
 
@@ -958,7 +960,7 @@ install_firewall() {
         echo "define BOGON_NETS = { 0.0.0.0/8, 127.0.0.0/8, 169.254.0.0/16, 224.0.0.0/4, 240.0.0.0/4 }"
         echo "define PRIVATE_NETS6 = { fe80::/10, fc00::/7 }"
         echo "define BOGON_NETS6 = { ::/128, ::1/128, ff00::/8, 2001:db8::/32, 2001:10::/28, 2001:20::/28 }"
-        echo "define WHITELIST_RESEAU = { docker0, lo }"
+        echo "define WHITELIST_RESEAU = { lo }" 
         echo "define SENSITIVE_PORTS = { 22, 3306, 5432, 8080, 8443, 10000, 9090, 9100, 9200, 6379, 27017, 28017, 4444, 4445 }"
         echo "define DNS_PORTS = { 53 }"
         echo "define HTTP_PORTS = { 80, 443 }"
