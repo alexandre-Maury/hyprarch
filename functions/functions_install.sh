@@ -960,7 +960,7 @@ install_firewall() {
         echo "define BOGON_NETS = { 0.0.0.0/8, 127.0.0.0/8, 169.254.0.0/16, 224.0.0.0/4, 240.0.0.0/4 }"
         echo "define PRIVATE_NETS6 = { fe80::/10, fc00::/7 }"
         echo "define BOGON_NETS6 = { ::/128, ::1/128, ff00::/8, 2001:db8::/32, 2001:10::/28, 2001:20::/28 }"
-        echo "define WHITELIST_RESEAU = { lo }" 
+        echo "define WHITELIST_IFACE = { lo }"
         echo "define SENSITIVE_PORTS = { 22, 3306, 5432, 8080, 8443, 10000, 9090, 9100, 9200, 6379, 27017, 28017, 4444, 4445 }"
         echo "define DNS_PORTS = { 53 }"
         echo "define HTTP_PORTS = { 80, 443 }"
@@ -969,6 +969,9 @@ install_firewall() {
 
         # Créer la table et les sets
         echo "add table inet firewall"
+
+        # Ajouter un ensemble dynamique pour les interfaces de confiance 
+        echo "add set inet firewall WHITELIST_IFACE { type ifname; flags dynamic; }"
 
         # Ensembles IPv4
         echo "add set inet firewall blacklist { type ipv4_addr; flags dynamic, timeout; timeout 1h; }"
@@ -1004,8 +1007,8 @@ install_firewall() {
         # Règles de base pour les connexions établies et invalides
         echo "add rule inet firewall input ct state established,related accept"
         echo "add rule inet firewall input ct state invalid drop"
-        # echo "add rule inet firewall input iif lo accept"
-        echo "add rule inet firewall input iif \$WHITELIST_RESEAU accept"
+        echo "add rule inet firewall input iifname @WHITELIST_IFACE accept"
+        echo "add element inet firewall WHITELIST_IFACE { lo }"
 
         # Bloquer les IP des ensembles dynamiques (IPv4)
         echo "add rule inet firewall input ip saddr @blacklist log prefix \"[NFT-DROP] IPV4-BLACKLIST-BLOCKED \" counter drop"
