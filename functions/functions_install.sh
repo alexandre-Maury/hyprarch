@@ -1295,6 +1295,9 @@ install_vpn() {
     sudo unzip fastestvpn_ovpn.zip
     sudo cp /etc/openvpn/tcp_files/* /etc/openvpn/ && sudo cp /etc/openvpn/udp_files/* /etc/openvpn/
 
+    #sudo openvpn --config /etc/openvpn/luxembourg-tcp.ovpn --auth-user-pass /home/alexandre/Documents/pentest/vpn/auth
+
+
 }
 
 ##############################################################################
