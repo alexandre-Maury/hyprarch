@@ -25,6 +25,7 @@ dnsmasq
 vde2
 keepass
 openvpn
+xorg-xhost
 # 2. Ces paquets concernent des outils d'administration système et de surveillance :
 ddcutil
 rsync
