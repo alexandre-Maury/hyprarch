@@ -1289,6 +1289,15 @@ install_clam() {
 
 }
 
+install_vpn() {
+    cd /etc/openvpn
+    sudo wget http://support.fastestvpn.com/download/fastestvpn_ovpn/ -O fastestvpn_ovpn.zip
+    sudo unzip fastestvpn_ovpn.zip
+    sudo cp /etc/openvpn/tcp_files/* /etc/openvpn/ && sudo cp /etc/openvpn/udp_files/* /etc/openvpn/
+
+    # cd /etc/openvpn && sudo su - && openvpn southafrica-tcp.ovpn
+}
+
 ##############################################################################
 ## Activate_services - Activation des services                                              
 ##############################################################################

@@ -80,6 +80,7 @@ case "$1" in
     # install_cron
     install_firewall
     install_clam
+    install_vpn
     Activate_services
     ;;
 
