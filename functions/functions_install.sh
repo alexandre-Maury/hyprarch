@@ -1295,7 +1295,6 @@ install_vpn() {
     sudo unzip fastestvpn_ovpn.zip
     sudo cp /etc/openvpn/tcp_files/* /etc/openvpn/ && sudo cp /etc/openvpn/udp_files/* /etc/openvpn/
 
-    # cd /etc/openvpn && sudo su - && openvpn southafrica-tcp.ovpn
 }
 
 ##############################################################################
