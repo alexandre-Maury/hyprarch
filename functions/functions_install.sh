@@ -4,9 +4,7 @@
 
 # https://hyprpanel.com/getting_started/hyprpanel.html
 # https://github.com/jasonxtn/Lucille
-    #sed -i 's/^#*PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
-    #sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
-    #systemctl restart sshd
+
 
 ##############################################################################
 ## config_system - Configuration du systeme                                                 
