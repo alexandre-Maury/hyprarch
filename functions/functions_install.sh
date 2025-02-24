@@ -1257,16 +1257,33 @@ install_clam() {
     # Créer un groupe pour ClamAV (s'il n'existe pas déjà)
     if ! getent group clamav > /dev/null; then
         sudo groupadd clamav
+        if [ $? -eq 0 ]; then
+            echo "Création du groupe clamav - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+        else
+            echo "Création du groupe clamav - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+        fi
+    else
+        echo "Le groupe clamav existe déjà" | tee -a "$LOG_FILES_INSTALL"
     fi
 
     # Ajouter l'utilisateur actuel au groupe clamav
     sudo usermod -aG clamav $USER
+    if [ $? -eq 0 ]; then
+        echo "Ajout de l'utilisateur au groupe clamav - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Ajout de l'utilisateur au groupe clamav - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
 
     # Créer les répertoires pour la quarantaine et les logs
     sudo mkdir -p $HOME/.clamav/quarantine $HOME/.clamav/logs
     sudo chown :clamav $HOME/.clamav/quarantine $HOME/.clamav/logs
     sudo chmod 770 $HOME/.clamav/quarantine $HOME/.clamav/logs
     sudo chmod 770 /var/lib/clamav
+    if [ $? -eq 0 ]; then
+        echo "Création des répertoires de quarantaine et des logs - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Création des répertoires de quarantaine et des logs - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
 
     # Configurer les exclusions dans clamd.conf
     echo "
@@ -1279,23 +1296,53 @@ install_clam() {
     ExcludePath ^/dev
     ExcludePath ^/var/lib/lxcfs/cgroup
     ExcludePath ^$HOME/.clamav/quarantine" | sudo tee -a /etc/clamav/clamd.conf
+    if [ $? -eq 0 ]; then
+        echo "Configuration des exclusions dans clamd.conf - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Configuration des exclusions dans clamd.conf - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
 
     # Ajouter les tâches cron
     (crontab -l 2>/dev/null; echo "0 3 * * * /usr/bin/freshclam --quiet") | crontab -
+    if [ $? -eq 0 ]; then
+        echo "Ajout de la tâche cron pour freshclam - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Ajout de la tâche cron pour freshclam - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
+
     (crontab -l 2>/dev/null; echo "20 21 * * * /usr/bin/clamdscan --fdpass --log=$HOME/.clamav/logs/scan-\$(date +'%d-%m-%Y-%T').log --move=$HOME/.clamav/quarantine /") | crontab -
-
-
+    if [ $? -eq 0 ]; then
+        echo "Ajout de la tâche cron pour clamdscan - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Ajout de la tâche cron pour clamdscan - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
 }
 
 install_vpn() {
     cd /etc/openvpn
     sudo wget http://support.fastestvpn.com/download/fastestvpn_ovpn/ -O fastestvpn_ovpn.zip
+    if [ $? -eq 0 ]; then
+        echo "Téléchargement du fichier VPN - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Téléchargement du fichier VPN - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
+
     sudo unzip fastestvpn_ovpn.zip
+    if [ $? -eq 0 ]; then
+        echo "Décompression du fichier VPN - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Décompression du fichier VPN - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
+
     sudo cp /etc/openvpn/tcp_files/* /etc/openvpn/ && sudo cp /etc/openvpn/udp_files/* /etc/openvpn/
+    if [ $? -eq 0 ]; then
+        echo "Copie des fichiers VPN - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Copie des fichiers VPN - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+    fi
 
     #sudo openvpn --config /etc/openvpn/luxembourg-tcp.ovpn --auth-user-pass /home/alexandre/Documents/pentest/vpn/auth
-
-
+    # Un commentaire, à réactiver si nécessaire
 }
 
 ##############################################################################
@@ -1307,29 +1354,60 @@ Activate_services() {
     echo "=== ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
+    # Fonction pour loguer le succès ou l'échec
+    log_status() {
+        if [ $? -eq 0 ]; then
+            echo "$1 - SUCCÈS" | tee -a "$LOG_FILES_INSTALL"
+        else
+            echo "$1 - ERREUR" | tee -a "$LOG_FILES_INSTALL"
+        fi
+    }
+
+    # Activation des services
     sudo systemctl enable --now sddm
+    log_status "Activation de sddm"
 
-    sudo systemctl enable --now mpd.service 
+    sudo systemctl enable --now mpd.service
+    log_status "Activation de mpd.service"
 
-    systemctl --user enable --now pipewire 
+    systemctl --user enable --now pipewire
+    log_status "Activation de pipewire"
+
     systemctl --user enable --now pipewire-pulse
+    log_status "Activation de pipewire-pulse"
+
     systemctl --user enable --now wireplumber
+    log_status "Activation de wireplumber"
 
     sudo systemctl enable --now cups
+    log_status "Activation de cups"
 
     sudo usermod -aG libvirt $(whoami)
     sudo systemctl enable --now libvirtd
+    log_status "Activation de libvirtd"
 
     sudo usermod -aG docker $(id -u -n)
     sudo systemctl enable docker.service
-    
+    log_status "Activation de docker.service"
+
     sudo systemctl enable --now systemd-journald.service
+    log_status "Activation de systemd-journald.service"
+
     sudo systemctl enable --now nftables.service
+    log_status "Activation de nftables.service"
+
+    # Activation optionnelle (commentée dans votre script original)
     # sudo systemctl enable --now logrotate.service
+    # log_status "Activation de logrotate.service"
+
     # sudo systemctl enable --now rsyslog.service
+    # log_status "Activation de rsyslog.service"
 
     sudo systemctl enable --now cronie
+    log_status "Activation de cronie"
+
     sudo systemctl enable --now clamav-daemon.service
+    log_status "Activation de clamav-daemon.service"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
