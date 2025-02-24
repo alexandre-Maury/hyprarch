@@ -1386,7 +1386,7 @@ Activate_services() {
     sudo systemctl enable --now libvirtd
     log_status "Activation de libvirtd"
 
-    sudo usermod -aG docker $(id -u -n)
+    sudo usermod -aG docker $(whoami)
     sudo systemctl enable docker.service
     log_status "Activation de docker.service"
 
