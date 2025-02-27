@@ -1364,9 +1364,6 @@ Activate_services() {
     }
 
     # Activation des services
-    sudo systemctl enable --now sddm
-    log_status "Activation de sddm"
-
     sudo systemctl enable --now mpd.service
     log_status "Activation de mpd.service"
 
@@ -1408,6 +1405,9 @@ Activate_services() {
 
     sudo systemctl enable --now clamav-daemon.service
     log_status "Activation de clamav-daemon.service"
+
+    sudo systemctl enable --now sddm
+    log_status "Activation de sddm"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'ACTIVATION DES SERVICES ===" | tee -a "$LOG_FILES_INSTALL"
