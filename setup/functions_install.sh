@@ -120,9 +120,9 @@ install_paru() {
 ##############################################################################
 install_paquages() {
 
-    local deps="$SCRIPT_DIR/pkg-files/deps.txt"
-    local packages="$SCRIPT_DIR/pkg-files/packages.txt"
-    local packages_hypr="$SCRIPT_DIR/pkg-files/packages_hypr.txt"
+    local deps="$TARGET_DIR/pkg-files/deps.txt"
+    local packages="$TARGET_DIR/pkg-files/packages.txt"
+    local packages_hypr="$TARGET_DIR/pkg-files/packages_hypr.txt"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== RECHERCHE DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
@@ -424,9 +424,9 @@ install_cups() {
 ##############################################################################
 install_drivers() {
 
-    local amd_driver="$SCRIPT_DIR/pkg-files/amd.txt"
-    local nvidia_driver="$SCRIPT_DIR/pkg-files/nvidia.txt"
-    local intel_driver="$SCRIPT_DIR/pkg-files/intel.txt"
+    local amd_driver="$TARGET_DIR/pkg-files/amd.txt"
+    local nvidia_driver="$TARGET_DIR/pkg-files/nvidia.txt"
+    local intel_driver="$TARGET_DIR/pkg-files/intel.txt"
 
     local gpu_modules=""
     local has_multiple_gpus=false

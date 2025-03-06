@@ -78,7 +78,7 @@ case "$1" in
 
     read -p "Souhaitez-vous configurer votre compte git ? (Y/n) " git
 
-    echo $TARGET_DIR
+
 
     # Exécution des fonctions d'installation
     #config_system "$git"
