@@ -4,7 +4,7 @@ set -e  # Quitte immédiatement en cas d'erreur.
 
 # Variables
 REPO_URL="https://github.com/alexandre-Maury/hyprarch.git"  # Remplace par ton URL
-TARGET_DIR="/opt/build/hyprarch"
+export TARGET_DIR="/opt/build/hyprarch"
 
 # Vérification si le script est exécuté en tant que root
 if [ "$EUID" -eq 0 ]; then
