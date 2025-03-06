@@ -1,0 +1,68 @@
+#!/bin/bash
+
+# script install_aur.sh
+
+
+##############################################################################
+## install_aur_yay - Installation de YAY                                               
+##############################################################################
+install_aur_yay() {
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== RECHERCHE DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    # Vérifier si le paquet est déjà installé
+    if pacman -Qi yay 2>&1; then
+        echo "Le paquets yay est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
+    else
+        echo "Installation du paquets yay..." | tee -a "$LOG_FILES_INSTALL"
+        git clone https://aur.archlinux.org/yay-bin.git $HOME/.config/build/tmp/yay-bin
+        cd $HOME/.config/build/tmp/yay-bin || exit
+        makepkg -si --noconfirm && cd .. 
+        echo "Installation du paquets yay terminé..." | tee -a "$LOG_FILES_INSTALL"
+    fi
+
+    yay -Syu --devel --noconfirm
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+}
+
+##############################################################################
+## install_aur_paru - Installation de PARU                                                 
+##############################################################################
+install_aur_paru() {
+
+    if [[ "$PARU" == "On" ]]; then
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "=== RECHERCHE DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+
+
+        # Vérifier si le paquet est déjà installé
+        if pacman -Qi paru 2>&1; then
+            echo "Le paquets paru est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
+        else
+            echo "Installation du paquets paru..." | tee -a "$LOG_FILES_INSTALL"
+            git clone https://aur.archlinux.org/paru.git $HOME/.config/build/tmp/paru
+            cd $HOME/.config/build/tmp/paru || exit
+            makepkg -si --noconfirm && cd .. 
+            echo "Installation du paquets paru terminé..." | tee -a "$LOG_FILES_INSTALL"
+        fi
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    else
+        echo "Le paquets paru n'est pas sélectionner dans le fichier config.sh..."
+
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+        echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+        echo "" | tee -a "$LOG_FILES_INSTALL"
+    fi
+
+}

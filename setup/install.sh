@@ -7,9 +7,19 @@ set -e  # Quitte immédiatement en cas d'erreur.
 
 # Inclusion des fichiers de configuration et fonctions
 source $TARGET_DIR/env/system.sh 
+source $TARGET_DIR/env/functions.sh
 source $TARGET_DIR/config/config.sh 
-source $TARGET_DIR/functions/functions.sh
-source $TARGET_DIR/functions/functions_install.sh
+
+source $TARGET_DIR/pkg-install/install_environnement.sh
+source $TARGET_DIR/pkg-install/install_aur.sh
+source $TARGET_DIR/pkg-install/install_packages.sh
+source $TARGET_DIR/pkg-install/install_repo.sh
+source $TARGET_DIR/pkg-install/install_impression.sh
+source $TARGET_DIR/pkg-install/install_drivers.sh
+source $TARGET_DIR/pkg-install/install_fonts.sh
+source $TARGET_DIR/pkg-install/install_dotfiles.sh
+source $TARGET_DIR/pkg-install/install_securite.sh
+source $TARGET_DIR/pkg-install/install_services.sh
 
 # Fonction pour afficher l'aide
 usage() {
@@ -17,7 +27,6 @@ usage() {
   echo
   echo "Options :"
   echo "  --install       Lance le processus d'installation."
-  echo "  --save          Sauvegarde la configuration."
   exit 1
 }
 
@@ -78,30 +87,35 @@ case "$1" in
 
     read -p "Souhaitez-vous configurer votre compte git ? (Y/n) " git
 
+    if [[ "$git" =~ ^[yY]$ ]]; then
+        echo
+        clear
+        echo "Configuration des identifiants github..." | tee -a "$LOG_FILES_INSTALL"
+        echo
+        read -p " Entrez votre nom d'utilisateur [git] : " git_name
+        read -p " Entrez votre adresse email [git] : " git_email	
 
+        git config --global user.name "${git_name}"
+        git config --global user.email "${git_email}"
+      
+    fi
 
     # Exécution des fonctions d'installation
-    #config_system "$git"
-    #install_yay
-    #install_paru
-    #install_paquages
-    #install_repo
-    #install_cups
-    #install_drivers
-    #install_fonts
-    #install_conf
-    # install_cron
-    #install_firewall
-    #install_clam
-    #install_vpn
-    #Activate_services
-    ;;
-
-  --save)
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== SAUVEGARDE DE LA CONFIGURATION ===" | tee -a "$LOG_FILES_INSTALL"
-    save_conf
-    echo "Sauvegarde terminée." 
+    config_environnement
+    install_aur_yay
+    install_aur_paru
+    install_full_packages
+    install_repo_autocpufreq
+    install_repo_ohmyzsh
+    install_repo_asdf
+    install_cups
+    install_all_drivers
+    install_all_fonts
+    install_all_dotfiles
+    install_firewall
+    install_clam
+    install_vpn
+    activate_services
     ;;
 
   *)
