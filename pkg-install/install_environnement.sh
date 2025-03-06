@@ -3,9 +3,9 @@
 # script install_environnement.sh
 
 ##############################################################################
-## config_environnement - Configuration du systeme                                                 
+## install_environnement - Configuration du systeme                                                 
 ##############################################################################
-config_environnement() {
+install_environnement() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== DÉBUT DE LA CONFIGURATION DU SYSTEME ===" | tee -a "$LOG_FILES_INSTALL"

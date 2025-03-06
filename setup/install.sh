@@ -8,6 +8,7 @@ set -e  # Quitte immédiatement en cas d'erreur.
 # Inclusion des fichiers de configuration et fonctions
 source $TARGET_DIR/env/system.sh 
 source $TARGET_DIR/env/functions.sh
+
 source $TARGET_DIR/config/config.sh 
 
 source $TARGET_DIR/pkg-install/install_environnement.sh
@@ -101,7 +102,7 @@ case "$1" in
     fi
 
     # Exécution des fonctions d'installation
-    config_environnement
+    install_environnement
     install_aur_yay
     install_aur_paru
     install_full_packages
