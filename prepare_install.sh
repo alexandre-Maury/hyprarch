@@ -3,7 +3,7 @@
 set -e  # Quitte immédiatement en cas d'erreur.
 
 # Variables
-REPO_URL="https://github.com/ton-utilisateur/hyprarch.git"  # Remplace par ton URL
+REPO_URL="https://github.com/alexandre-Maury/hyprarch.git"  # Remplace par ton URL
 TARGET_DIR="/opt/build/hyprarch"
 
 # Vérification si le script est exécuté en tant que root
