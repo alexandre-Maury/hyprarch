@@ -1345,6 +1345,17 @@ install_vpn() {
     # Un commentaire, à réactiver si nécessaire
 }
 
+install_pentest() {
+    pipx install exegol
+    pipx ensurepath
+    echo "alias exegol='sudo -E $(which exegol)'" >> ~/.zshrc
+    source ~/.zshrc
+    pipx install argcomplete
+    # autoload -U compinit
+    # compinit
+    eval "$(register-python-argcomplete --no-defaults exegol)"
+}
+
 ##############################################################################
 ## Activate_services - Activation des services                                              
 ##############################################################################

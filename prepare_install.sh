@@ -1,44 +1,52 @@
+#!/usr/bin/env bash
+
 set -e  # Quitte immédiatement en cas d'erreur.
 
 # Variables
+REPO_URL="https://github.com/ton-utilisateur/hyprarch.git"  # Remplace par ton URL
 TARGET_DIR="/opt/build/hyprarch"
-CURRENT_DIR=$(pwd)
 
 # Vérification si le script est exécuté en tant que root
 if [ "$EUID" -eq 0 ]; then
-  echo
   echo "Ce script ne doit pas être exécuté en tant qu'utilisateur root."
   exit 1
 fi
 
-# Crée le répertoire cible si nécessaire
+# Vérification si git est installé
+if ! command -v git &> /dev/null; then
+  echo "Erreur : git n'est pas installé. Installez-le et réessayez."
+  exit 1
+fi
+
+# Création du répertoire cible
 echo "Création du répertoire cible : $TARGET_DIR"
 sudo mkdir -p "$(dirname "$TARGET_DIR")"
 
-# Déplacement du dépôt
-if [ -d "$TARGET_DIR" ]; then
-  echo "Le dépôt existe déjà dans $TARGET_DIR. Suppression de l'ancien répertoire..."
-  sudo rm -rf "$TARGET_DIR"
+# Mise à jour ou clonage du dépôt
+if [ -d "$TARGET_DIR/.git" ]; then
+  echo "Mise à jour du dépôt existant..."
+  sudo git -C "$TARGET_DIR" pull
+else
+  echo "Clonage du dépôt dans $TARGET_DIR..."
+  sudo git clone "$REPO_URL" "$TARGET_DIR"
 fi
 
-echo "Déplacement du dépôt dans $TARGET_DIR..."
-sudo mv "$CURRENT_DIR" "$TARGET_DIR"
-
 # Ajustement des permissions
-echo "Ajustement des permissions pour l'utilisateur..."
-sudo chown -R $USER:$USER "/opt/build"
+echo "Ajustement des permissions..."
+sudo chown -R $(id -u):$(id -g) "$TARGET_DIR"
 
-# Change de répertoire pour éviter les problèmes liés au déplacement
-cd "$TARGET_DIR"
+# Définition du chemin du script d'installation
+INSTALL_SCRIPT="$TARGET_DIR/functions/install.sh"
 
-chmod +x ./install.sh && ./install.sh --install
+# Vérification de l'existence du script d'installation
+if [ ! -f "$INSTALL_SCRIPT" ]; then
+  echo "Erreur : Le script d'installation n'a pas été trouvé à l'emplacement attendu ($INSTALL_SCRIPT)."
+  exit 1
+fi
+
+# Exécution du script d'installation
+chmod +x "$INSTALL_SCRIPT"
+"$INSTALL_SCRIPT" --install
 
 clear
-echo
-echo "=== FIN DE L'INSTALLATION REDEMMARER VOTRE SYSTEME ===" 
-echo
-echo " === Configuration Post Installation ==="
-echo
-echo "[vim] Pluggins YouCompleteMe : Instructions d'installation :"
-echo " cd ~/.vim/plugged/YouCompleteMe && python3 install.py --clangd-completer"
-echo
+echo "=== FIN DE L'INSTALLATION - REDÉMARREZ VOTRE SYSTÈME ==="
