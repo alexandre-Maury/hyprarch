@@ -48,5 +48,4 @@ fi
 chmod +x "$INSTALL_SCRIPT"
 "$INSTALL_SCRIPT" --install
 
-clear
 echo "=== FIN DE L'INSTALLATION - REDÉMARREZ VOTRE SYSTÈME ==="
