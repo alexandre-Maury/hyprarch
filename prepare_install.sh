@@ -36,7 +36,7 @@ echo "Ajustement des permissions..."
 sudo chown -R $(id -u):$(id -g) "$TARGET_DIR"
 
 # Définition du chemin du script d'installation
-INSTALL_SCRIPT="$TARGET_DIR/functions/install.sh"
+INSTALL_SCRIPT="$TARGET_DIR/setup/install.sh"
 
 # Vérification de l'existence du script d'installation
 if [ ! -f "$INSTALL_SCRIPT" ]; then
