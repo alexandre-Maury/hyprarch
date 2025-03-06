@@ -52,6 +52,7 @@ clamtk
 nftables
 rsyslog
 logrotate
+python-pipx
 # 3. Ces paquets sont relatifs à la gestion du réseau :
 cups
 foomatic-db
