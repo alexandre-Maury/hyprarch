@@ -10,7 +10,7 @@
 GPU_VENDOR=$(lspci | grep -i "VGA\|3D" | awk '{print tolower($0)}')
 CPU_VENDOR=$(grep -m1 "vendor_id" /proc/cpuinfo | awk '{print $3}')
 
-LOG_FILES_INSTALL="$HOME/.config/build/installation/install."$(date +%d%m%Y.%H%M)".log"
+LOG_FILES_INSTALL="$TARGET_DIR/installation/install."$(date +%d%m%Y.%H%M)".log"
 
 mkdir -p "${HOME}/.local/share/themes"
 mkdir -p "${HOME}/.local/share/icons"
