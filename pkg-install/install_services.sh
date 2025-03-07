@@ -42,6 +42,7 @@ activate_services() {
 
     sudo usermod -aG docker $(whoami)
     sudo systemctl enable docker.service
+    sudo systemctl start docker.service
     log_status "Activation de docker.service"
 
     sudo systemctl enable --now systemd-journald.service
