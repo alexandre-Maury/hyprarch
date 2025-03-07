@@ -2,9 +2,6 @@
 
 set -e  # Quitte immédiatement en cas d'erreur.
 
-# Définition du répertoire du script
-# SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
-
 # Inclusion des fichiers de configuration et fonctions
 source $TARGET_DIR/hyprarch/env/system.sh 
 source $TARGET_DIR/hyprarch/env/functions.sh
