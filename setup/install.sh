@@ -6,21 +6,21 @@ set -e  # Quitte immédiatement en cas d'erreur.
 # SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Inclusion des fichiers de configuration et fonctions
-source $TARGET_DIR/env/system.sh 
-source $TARGET_DIR/env/functions.sh
+source $TARGET_DIR/hyprarch/env/system.sh 
+source $TARGET_DIR/hyprarch/env/functions.sh
 
-source $TARGET_DIR/config/config.sh 
+source $TARGET_DIR/hyprarch/config/config.sh 
 
-source $TARGET_DIR/pkg-install/install_environnement.sh
-source $TARGET_DIR/pkg-install/install_aur.sh
-source $TARGET_DIR/pkg-install/install_packages.sh
-source $TARGET_DIR/pkg-install/install_repo.sh
-source $TARGET_DIR/pkg-install/install_impression.sh
-source $TARGET_DIR/pkg-install/install_drivers.sh
-source $TARGET_DIR/pkg-install/install_fonts.sh
-source $TARGET_DIR/pkg-install/install_dotfiles.sh
-source $TARGET_DIR/pkg-install/install_securite.sh
-source $TARGET_DIR/pkg-install/install_services.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_environnement.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_aur.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_packages.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_repo.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_impression.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_drivers.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_fonts.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_dotfiles.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_securite.sh
+source $TARGET_DIR/hyprarch/pkg-install/install_services.sh
 
 # Fonction pour afficher l'aide
 usage() {
@@ -102,21 +102,21 @@ case "$1" in
     fi
 
     # Exécution des fonctions d'installation
-    install_environnement
-    install_aur_yay
-    install_aur_paru
-    install_full_packages
-    install_repo_autocpufreq
-    install_repo_ohmyzsh
-    install_repo_asdf
-    install_cups
-    install_all_drivers
-    install_all_fonts
+    # install_environnement
+    # install_aur_yay
+    # install_aur_paru
+    # install_full_packages
+    # install_repo_autocpufreq
+    # install_repo_ohmyzsh
+    # install_repo_asdf
+    # install_cups
+    # install_all_drivers
+    # install_all_fonts
     install_all_dotfiles
-    install_firewall
-    install_clam
-    install_vpn
-    activate_services
+    # install_firewall
+    # install_clam
+    # install_vpn
+    # activate_services
     ;;
 
   *)

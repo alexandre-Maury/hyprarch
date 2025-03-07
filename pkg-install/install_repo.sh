@@ -9,7 +9,7 @@
 install_repo_autocpufreq() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION AUTOCPUFREQ ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DE AUTOCPUFREQ ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     ### REPO AUTOCPU-FREQ
@@ -26,6 +26,10 @@ install_repo_autocpufreq() {
         echo "Auto-cpufreq est déjà installé sur le systeme..." | tee -a "$LOG_FILES_INSTALL"
     fi
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DE AUTOCPUFREQ ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
 }
 
 
@@ -35,7 +39,7 @@ install_repo_autocpufreq() {
 install_repo_ohmyzsh() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION OH-MY-ZSH ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION OH-MY-ZSH ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     if [ ! -d "$HOME/.oh-my-zsh" ]; then
@@ -162,7 +166,7 @@ install_repo_ohmyzsh() {
 install_repo_asdf() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION ASDF ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DE ASDF ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     if [ ! -f "$HOME/.local/bin/asdf" ]; then

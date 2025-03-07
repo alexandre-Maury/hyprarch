@@ -8,9 +8,9 @@
 ##############################################################################
 install_all_drivers() {
 
-    local amd_driver="$TARGET_DIR/pkg-files/amd.txt"
-    local nvidia_driver="$TARGET_DIR/pkg-files/nvidia.txt"
-    local intel_driver="$TARGET_DIR/pkg-files/intel.txt"
+    local amd_driver="$TARGET_DIR/hyprarch/pkg-files/amd.txt"
+    local nvidia_driver="$TARGET_DIR/hyprarch/pkg-files/nvidia.txt"
+    local intel_driver="$TARGET_DIR/hyprarch/pkg-files/intel.txt"
 
     local gpu_modules=""
     local has_multiple_gpus=false
@@ -19,7 +19,7 @@ install_all_drivers() {
     sudo mkdir -p "/etc/pacman.d/hooks"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION DES DRIVERS === " | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DES DRIVERS === " | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     if [[ -n "$PROC_UCODE_TYPE" ]]; then

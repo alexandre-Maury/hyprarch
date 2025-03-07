@@ -8,7 +8,7 @@
 install_cups() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DU PARAMÉTRAGE DE L'IMPRESSION === " | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DU PARAMÉTRAGE DE L'IMPRESSION === " | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     cups_backup_file="${CUPS_CONF}.backup"
@@ -81,7 +81,7 @@ install_cups() {
     echo "$config" | sudo tee -a "/etc/cups/cupsd.conf" > /dev/null
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DU PARAMÉTRAGE DE L'IMPRESSION TERMINEE === " | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE PARAMÉTRAGE DE L'IMPRESSION === " | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
 

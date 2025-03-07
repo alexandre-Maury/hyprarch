@@ -9,7 +9,7 @@
 install_aur_yay() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DU PAQUET YAY ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     # Vérifier si le paquet est déjà installé
@@ -35,12 +35,11 @@ install_aur_yay() {
 ##############################################################################
 install_aur_paru() {
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
     if [[ "$PARU" == "On" ]]; then
-
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "=== RECHERCHE DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-
 
         # Vérifier si le paquet est déjà installé
         if pacman -Qi paru 2>&1; then
@@ -52,17 +51,12 @@ install_aur_paru() {
             makepkg -si --noconfirm && cd .. 
             echo "Installation du paquets paru terminé..." | tee -a "$LOG_FILES_INSTALL"
         fi
-
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-
     else
         echo "Le paquets paru n'est pas sélectionner dans le fichier config.sh..."
-
-        echo "" | tee -a "$LOG_FILES_INSTALL"
-        echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
-        echo "" | tee -a "$LOG_FILES_INSTALL"
     fi
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DU PAQUET PARU ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 
 }

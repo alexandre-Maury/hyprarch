@@ -8,7 +8,7 @@
 install_all_fonts() {
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION DES FONTS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DES FONTS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     for url in "${URL_FONTS[@]}"; do

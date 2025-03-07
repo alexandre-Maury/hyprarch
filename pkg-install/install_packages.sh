@@ -7,12 +7,12 @@
 ##############################################################################
 install_full_packages() {
 
-    local deps="$TARGET_DIR/pkg-files/deps.txt"
-    local packages="$TARGET_DIR/pkg-files/packages.txt"
-    local packages_hypr="$TARGET_DIR/pkg-files/packages_hypr.txt"
+    local deps="$TARGET_DIR/hyprarch/pkg-files/deps.txt"
+    local packages="$TARGET_DIR/hyprarch/pkg-files/packages.txt"
+    local packages_hypr="$TARGET_DIR/hyprarch/pkg-files/packages_hypr.txt"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
-    echo "=== RECHERCHE DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     # Installation des dépendances

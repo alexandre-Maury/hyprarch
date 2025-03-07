@@ -6,6 +6,10 @@
 ## firewall - Activation du Firewall                                              
 ##############################################################################
 install_firewall() {
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DU FIREWALL ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
     
     # Définition des variables
     NFTABLES_CONF="/etc/nftables.conf"
@@ -343,7 +347,9 @@ install_firewall() {
 
     # } | sudo tee "/etc/logrotate.d/rsyslog" > /dev/null
 
-    echo "Configuration du pare-feu terminée avec succès."
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DU FIREWALL ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 
 }
 
@@ -352,6 +358,10 @@ install_firewall() {
 ## Clam - Activation de l'antivirus                                              
 ##############################################################################
 install_clam() {
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DE L'ANTIVIRUS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
     
     # Créer un groupe pour ClamAV (s'il n'existe pas déjà)
     if ! getent group clamav > /dev/null; then
@@ -415,6 +425,10 @@ install_clam() {
     else
         echo "Ajout de la tâche cron pour clamdscan - ERREUR" | tee -a "$LOG_FILES_INSTALL"
     fi
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DE L'ANTIVIRUS ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 }
 
 
@@ -422,6 +436,10 @@ install_clam() {
 ## install_vpn - Activation du vpn                                              
 ##############################################################################
 install_vpn() {
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DE L'INSTALLATION DU VPN ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 
     cd /etc/openvpn
     sudo wget http://support.fastestvpn.com/download/fastestvpn_ovpn/ -O fastestvpn_ovpn.zip
@@ -447,4 +465,8 @@ install_vpn() {
 
     #sudo openvpn --config /etc/openvpn/luxembourg-tcp.ovpn --auth-user-pass /home/alexandre/Documents/pentest/vpn/auth
     # Un commentaire, à réactiver si nécessaire
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DE L'INSTALLATION DU VPN ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
 }

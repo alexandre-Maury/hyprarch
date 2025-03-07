@@ -11,8 +11,8 @@ install_all_dotfiles() {
     echo "=== DEBUT DE L'INSTALLATION DE HYPRDOTS ===" | tee -a "$LOG_FILES_INSTALL"
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
-    git clone --recursive $HYPRDOTS /opt/build/hyprdots
-    cd /opt/build/hyprdots
+    git clone --recursive $HYPRDOTS $TARGET_DIR/hyprdots
+    cd $TARGET_DIR/hyprdots
 
     rsync -av --delete config/hypr/ $HOME/.config/hypr
     rsync -av --delete config/kitty/ $HOME/.config/kitty
