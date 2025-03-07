@@ -18,8 +18,8 @@ install_repo_autocpufreq() {
     then
 
         echo "Auto-cpufreq n'est pas installé, installation en cours..." | tee -a "$LOG_FILES_INSTALL"
-        git clone "$AUTO_CPUFREQ" $HOME/.config/build/tmp/auto-cpufreq
-        cd $HOME/.config/build/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
+        git clone "$AUTO_CPUFREQ" $TARGET_DIR/tmp/auto-cpufreq
+        cd $TARGET_DIR/tmp/auto-cpufreq && echo "I" | sudo ./auto-cpufreq-installer
         sudo auto-cpufreq --install
         echo "Installation de auto-cpufreq avec succès..." | tee -a "$LOG_FILES_INSTALL"
     else
@@ -173,8 +173,8 @@ install_repo_asdf() {
 
         echo "Installation de asdf..."
 
-        wget -O "$HOME/.config/build/tmp/asdf.tar.gz" "$ASDF_URL"
-        tar -xvzf $HOME/.config/build/tmp/asdf.tar.gz -C $HOME/.local/bin
+        wget -O "$TARGET_DIR/tmp/asdf.tar.gz" "$ASDF_URL"
+        tar -xvzf $TARGET_DIR/tmp/asdf.tar.gz -C $HOME/.local/bin
 
         echo "Modification du fichier $HOME/.zshrc..." | tee -a "$LOG_FILES_INSTALL"
         {

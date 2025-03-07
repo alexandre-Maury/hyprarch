@@ -17,8 +17,8 @@ install_aur_yay() {
         echo "Le paquets yay est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
     else
         echo "Installation du paquets yay..." | tee -a "$LOG_FILES_INSTALL"
-        git clone https://aur.archlinux.org/yay-bin.git $HOME/.config/build/tmp/yay-bin
-        cd $HOME/.config/build/tmp/yay-bin || exit
+        git clone https://aur.archlinux.org/yay-bin.git $TARGET_DIR/tmp/yay-bin
+        cd $TARGET_DIR/tmp/yay-bin || exit
         makepkg -si --noconfirm && cd .. 
         echo "Installation du paquets yay terminé..." | tee -a "$LOG_FILES_INSTALL"
     fi
@@ -46,8 +46,8 @@ install_aur_paru() {
             echo "Le paquets paru est déjà installé..." | tee -a "$LOG_FILES_INSTALL"
         else
             echo "Installation du paquets paru..." | tee -a "$LOG_FILES_INSTALL"
-            git clone https://aur.archlinux.org/paru.git $HOME/.config/build/tmp/paru
-            cd $HOME/.config/build/tmp/paru || exit
+            git clone https://aur.archlinux.org/paru.git $TARGET_DIR/tmp/paru
+            cd $TARGET_DIR/tmp/paru || exit
             makepkg -si --noconfirm && cd .. 
             echo "Installation du paquets paru terminé..." | tee -a "$LOG_FILES_INSTALL"
         fi

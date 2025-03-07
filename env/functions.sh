@@ -107,6 +107,14 @@ configure_modprobe_file() {
     fi
 }
 
+# Vérification de la connexion Internet
+check_internet() {
+  echo "Vérification de la connexion Internet..."
+  if ! curl -s --head https://archlinux.org | head -n 1 | grep "200 OK" > /dev/null; then
+    echo "⚠️ Avertissement : Pas de connexion Internet ! Certaines fonctionnalités peuvent ne pas fonctionner."
+  fi
+}
+
 
 ##############################################################################
 ## clean_system - nettoyage de l'installation                                             
@@ -118,6 +126,7 @@ clean_system() {
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     sudo rm -rf $SCRIPT_DIR
+    sudo rm -rf $TARGET_DIR/tmp
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DU NETTOYAGE DE L'INSTALLATION ===" | tee -a "$LOG_FILES_INSTALL"

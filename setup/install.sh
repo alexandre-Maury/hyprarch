@@ -40,30 +40,7 @@ if [ "$EUID" -eq 0 ]; then
   exit 1
 fi
 
-# Vérification de la connexion Internet
-check_internet() {
-  echo "Vérification de la connexion Internet..."
-  if ! curl -s --head https://archlinux.org | head -n 1 | grep "200 OK" > /dev/null; then
-    echo "⚠️ Avertissement : Pas de connexion Internet ! Certaines fonctionnalités peuvent ne pas fonctionner."
-  fi
-}
 
-# Création des dossiers nécessaires
-create_dirs() {
-
-  local dirs=(
-    "${HOME}/.local/share/themes"
-    "${HOME}/.local/share/icons"
-    "${HOME}/.local/share/fonts"
-    "${HOME}/.local/share/music"
-    "${HOME}/.local/bin"
-  )
-
-  for dir in "${dirs[@]}"; do
-    mkdir -p "$dir"
-  done
-
-}
 
 # Gestion des options
 case "$1" in
@@ -71,7 +48,6 @@ case "$1" in
   --install)
 
     check_internet
-    create_dirs
 
     # export PATH=~/.local/bin:$PATH
     export PATH="$HOME/.local/bin:$PATH"
