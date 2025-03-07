@@ -6,8 +6,8 @@ set -e  # Quitte immédiatement en cas d'erreur.
 REPO_URL="https://github.com/alexandre-Maury/hyprarch.git"  # Remplace par ton URL
 export TARGET_DIR="/opt/build"
 
-# Définition du répertoire du script
-SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+# Définition du répertoire du script pour le clean system
+export SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 # Vérification si le script est exécuté en tant que root
 if [ "$EUID" -eq 0 ]; then
@@ -48,9 +48,7 @@ if [ ! -f "$INSTALL_SCRIPT" ]; then
 fi
 
 # Exécution du script d'installation
-# chmod +x "$INSTALL_SCRIPT"
-# "$INSTALL_SCRIPT" --install
-
-echo "Le script est exécuter depuis : $SCRIPT_DIR"
+chmod +x "$INSTALL_SCRIPT"
+"$INSTALL_SCRIPT" --install
 
 echo "=== FIN DE L'INSTALLATION - REDÉMARREZ VOTRE SYSTÈME ==="

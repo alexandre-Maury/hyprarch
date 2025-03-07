@@ -108,7 +108,22 @@ configure_modprobe_file() {
 }
 
 
+##############################################################################
+## clean_system - nettoyage de l'installation                                             
+##############################################################################
+clean_system() {
 
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== DEBUT DU NETTOYAGE DE L'INSTALLATION ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+    sudo rm -rf $SCRIPT_DIR
+
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+    echo "=== FIN DU NETTOYAGE DE L'INSTALLATION ===" | tee -a "$LOG_FILES_INSTALL"
+    echo "" | tee -a "$LOG_FILES_INSTALL"
+
+}
 
 
 

@@ -113,6 +113,7 @@ case "$1" in
     install_firewall
     install_clam
     install_vpn
+    clean_system
     activate_services
     ;;
 

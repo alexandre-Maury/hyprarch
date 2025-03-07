@@ -66,3 +66,5 @@ declare -A ASDF_PLUGINS=(
 )
     
 HYPRDOTS="https://github.com/alexandre-Maury/hyprdots.git"
+
+
