@@ -75,15 +75,15 @@ case "$1" in
     fi
 
     # Exécution des fonctions d'installation
-    #install_environnement
+    install_environnement
     install_aur_yay
     install_aur_paru
-    # install_full_packages
+    install_full_packages
     install_repo_autocpufreq
     install_repo_ohmyzsh
     install_repo_asdf
     install_cups
-    # install_all_drivers
+    install_all_drivers
     install_all_fonts
     install_all_dotfiles
     install_firewall
