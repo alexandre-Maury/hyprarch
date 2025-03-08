@@ -3,8 +3,6 @@
 ## Description
 Ce projet a pour objectif d'installer et de configurer Hyprland, un compositeur Wayland dynamique et personnalisable, sur une base Arch Linux. Hyprland est conçu pour offrir un environnement de bureau léger et performant, avec un accent sur la fluidité et la modularité, idéal pour les utilisateurs avancés.
 
-L'objectif est de mettre en place un système optimisé pour deux usages principaux : un environnement de développement et un environnement de pentesting. Ce projet propose ainsi une configuration polyvalente, adaptée aux besoins spécifiques de chaque contexte d'utilisation.
-
 Projet 1 : Installation de Base Arch Linux (Sans Interface Graphique) : https://github.com/alexandre-Maury/arch-dboot.git
 
 ## Visuels

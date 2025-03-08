@@ -3,7 +3,7 @@
 set -e  # Quitte immédiatement en cas d'erreur.
 
 # Variables
-REPO_URL="https://github.com/alexandre-Maury/hyprarch.git"  # Remplace par ton URL
+REPO_URL="https://github.com/alexandre-Maury/hyprarch.git"
 export TARGET_DIR="/opt/build"
 
 # Définition du répertoire du script pour le clean system
