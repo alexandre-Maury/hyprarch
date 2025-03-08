@@ -7,7 +7,7 @@
 ##############################################################################
 install_full_packages() {
 
-    local pkg_base_hyprland="$TARGET_DIR/hyprarch/pkg-files/pkg_hyprland.txt"
+    local pkg_base_hyprland="$TARGET_DIR/hyprarch/pkg-files/pkg_base_hyprland.txt"
     local pkg_utils_hyprland="$TARGET_DIR/hyprarch/pkg-files/pkg_utils_hyprland.txt"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
