@@ -11,6 +11,12 @@ swww
 feh
 gedit
 nwg-look
+qt6-svg
+qt6-declarative
+qt5-quickcontrols2
+qt5-svg
+qt5-declarative
+qt5-graphicaleffects
 sddm
 dunst
 udiskie

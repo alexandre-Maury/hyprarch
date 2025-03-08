@@ -7,21 +7,11 @@
 ##############################################################################
 install_full_packages() {
 
-    local deps="$TARGET_DIR/hyprarch/pkg-files/deps.txt"
-    local packages="$TARGET_DIR/hyprarch/pkg-files/packages.txt"
-    local packages_hypr="$TARGET_DIR/hyprarch/pkg-files/packages_hypr.txt"
+    local pkg_base_hyprland="$TARGET_DIR/hyprarch/pkg-files/pkg_hyprland.txt"
+    local pkg_utils_hyprland="$TARGET_DIR/hyprarch/pkg-files/pkg_utils_hyprland.txt"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== DEBUT DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
-    echo "" | tee -a "$LOG_FILES_INSTALL"
-
-    # Installation des dépendances
-    echo "Installation des dépendances..." | tee -a "$LOG_FILES_INSTALL"
-    while IFS= read -r line; do
-        [[ -z "$line" || "$line" =~ ^# ]] && continue
-        install_with_yay "$line"
-    done < "$deps"
-
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
     # Installation des packages principaux
@@ -29,16 +19,15 @@ install_full_packages() {
     while IFS= read -r line; do
         [[ -z "$line" || "$line" =~ ^# ]] && continue
         install_with_yay "$line"
-    done < "$packages"
+    done < "$pkg_utils_hyprland"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
 
-    # Installation des packages principaux hypr
     echo "Installation des packages hypr principaux..." | tee -a "$LOG_FILES_INSTALL"
     while IFS= read -r line; do
         [[ -z "$line" || "$line" =~ ^# ]] && continue
         install_with_yay "$line"
-    done < "$packages_hypr"
+    done < "$pkg_base_hyprland"
 
     echo "" | tee -a "$LOG_FILES_INSTALL"
     echo "=== FIN DE L'INSTALLATION DES APPLICATIONS ===" | tee -a "$LOG_FILES_INSTALL"
