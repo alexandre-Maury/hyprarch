@@ -1,0 +1,4 @@
+mesa
+xf86-video-vmware
+xorg-server
+xorg-xinit

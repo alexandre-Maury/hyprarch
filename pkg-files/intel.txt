@@ -5,3 +5,6 @@ lib32-vulkan-intel
 vulkan-intel
 vulkan-tools
 libva-intel-driver
+intel-media-driver
+xorg-server
+xorg-xinit

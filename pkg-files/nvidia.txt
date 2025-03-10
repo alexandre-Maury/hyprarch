@@ -5,3 +5,6 @@ nvidia-settings
 lib32-nvidia-utils
 egl-wayland
 libva-nvidia-driver
+dkms
+xorg-server
+xorg-xinit
